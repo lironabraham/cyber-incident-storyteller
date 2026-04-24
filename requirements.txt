@@ -1,0 +1,5 @@
+pandas
+tabulate
+python-dateutil
+pytest
+pytest-cov
