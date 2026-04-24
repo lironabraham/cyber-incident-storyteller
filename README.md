@@ -29,10 +29,13 @@ cd cyber-incident-storyteller
 pip install .
 ```
 
+> **Windows note:** if `ais` is not found after install, either add Python's Scripts folder to PATH (`setx PATH "%PATH%;%LOCALAPPDATA%\Programs\Python\Python312\Scripts"` then restart your terminal), or use `py src/storyteller.py` in place of `ais` throughout.
+
 **See it work immediately (no log file needed):**
 
 ```bash
 ais demo
+# Windows fallback: py src/storyteller.py demo
 ```
 
 Generates a synthetic multi-stage attack, runs the full pipeline, and prints the report.
