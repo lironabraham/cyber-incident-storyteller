@@ -8,10 +8,18 @@ generate_narrative(report)  -> str
 report(df, log_path)        -> str   (convenience: analyze + generate_narrative)
 """
 
+import argparse
+import sys
 import textwrap
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pandas as pd
+
+# Self-bootstrap import path when run as a script (mirrors ingest.py pattern)
+sys.path.insert(0, str(Path(__file__).parent))
+
+SUPPORTED_FORMATS = ('auth_log', 'syslog', 'audit_log', 'web_access', 'sysmon_linux')
 
 
 @dataclass
@@ -235,3 +243,83 @@ def generate_narrative(inc: IncidentReport) -> str:
 def report(df: pd.DataFrame, log_path: str = 'auth.log') -> str:
     """Convenience: analyze df and return the formatted narrative string."""
     return generate_narrative(analyze(df, log_path))
+
+
+# ── CLI ────────────────────────────────────────────────────────────────────────
+
+def _cmd_analyze(args: argparse.Namespace) -> int:
+    from ingest import ingest
+    from hunter import build_attack_chains
+    from reporter import generate_report
+
+    log_path = Path(args.log_path).resolve()
+    output_path = Path(args.output)
+    processed_dir = Path(args.processed_dir)
+
+    try:
+        events = ingest(log_path, fmt=args.fmt, processed_dir=processed_dir)
+    except FileNotFoundError:
+        print(f"Error: log file not found: {log_path}", file=sys.stderr)
+        return 1
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    chains = build_attack_chains(events, threshold=args.threshold)
+    generate_report(chains, events, output_path=output_path)
+    print(f"Analyzed {len(events)} events, {len(chains)} attack chain(s). Report: {output_path}")
+    return 0
+
+
+def _cmd_verify(args: argparse.Namespace) -> int:
+    from ingest import verify_integrity
+
+    log_path = Path(args.log_path).resolve()
+    processed_dir = Path(args.processed_dir)
+
+    if verify_integrity(log_path, processed_dir=processed_dir):
+        print(f"OK: SHA-256 match for {log_path.name}")
+        return 0
+    print(f"FAIL: hash mismatch or no hash file for {log_path.name}", file=sys.stderr)
+    return 2
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    Entry point for the Cyber Incident Storyteller CLI.
+
+    Exit codes: 0 success, 1 user/parse error, 2 integrity verification failure.
+    """
+    p = argparse.ArgumentParser(
+        prog='storyteller',
+        description='Cyber Incident Storyteller — DFIR log analysis and report generation',
+    )
+    sub = p.add_subparsers(dest='command', metavar='command')
+    sub.required = True
+
+    p_analyze = sub.add_parser('analyze', help='Ingest a log and generate an incident report')
+    p_analyze.add_argument('log_path', help='Path to the log file to analyze')
+    p_analyze.add_argument('--fmt', default='auth_log', choices=SUPPORTED_FORMATS,
+                           help='Log format (default: auth_log)')
+    p_analyze.add_argument('--output', default='reports/incident.md',
+                           help='Output report path (default: reports/incident.md)')
+    p_analyze.add_argument('--processed-dir', default='data/processed',
+                           help='Directory for processed cache and SHA-256 hashes')
+    p_analyze.add_argument('--threshold', type=int, default=5,
+                           help='Min failed logins to flag an IP as attacker (default: 5)')
+
+    p_verify = sub.add_parser('verify', help='Verify forensic integrity of an ingested log')
+    p_verify.add_argument('log_path', help='Path to the log file to verify')
+    p_verify.add_argument('--processed-dir', default='data/processed',
+                          help='Directory containing SHA-256 hash files')
+
+    args = p.parse_args(argv)
+    if args.command == 'analyze':
+        return _cmd_analyze(args)
+    if args.command == 'verify':
+        return _cmd_verify(args)
+    return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
