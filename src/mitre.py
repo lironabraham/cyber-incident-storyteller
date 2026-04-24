@@ -18,7 +18,7 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     'Disconnected':       (None, None),
     # ── syslog ────────────────────────────────────────────────────────────────
     'Service Started':    ('T1543.002', 'Create or Modify System Process: Systemd Service'),
-    'Service Stopped':    (None, None),
+    'Service Stopped':    ('T1489',     'Service Stop'),
     'Service Failed':     (None, None),
     'Cron Execution':     ('T1053.003', 'Scheduled Task/Job: Cron'),
     'OOM Kill':           (None, None),
@@ -36,26 +36,70 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     'Admin Access':       ('T1078',     'Valid Accounts'),
     'Web Shell':          ('T1505.003', 'Server Software Component: Web Shell'),
     'Tool Fingerprint':   ('T1595.002', 'Vulnerability Scanning'),
+    # ── sysmon_linux ──────────────────────────────────────────────────────────
+    'Network Connection': ('T1071',     'Application Layer Protocol'),
+    'File Deleted':       ('T1070.004', 'Indicator Removal: File Deletion'),
     # ── catch-all ─────────────────────────────────────────────────────────────
     'Other':              (None, None),
 }
 
 SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
-    'wget':     ('T1105',     'Ingress Tool Transfer'),
-    'curl':     ('T1105',     'Ingress Tool Transfer'),
-    'chmod':    ('T1222',     'File and Directory Permissions Modification'),
-    'nc':       ('T1059',     'Command and Script Interpreter'),
-    'ncat':     ('T1059',     'Command and Script Interpreter'),
-    'netcat':   ('T1059',     'Command and Script Interpreter'),
-    'python':   ('T1059.006', 'Python'),
-    'python3':  ('T1059.006', 'Python'),
-    'bash':     ('T1059.004', 'Unix Shell'),
-    'sh':       ('T1059.004', 'Unix Shell'),
-    'whoami':   ('T1033',     'System Owner/User Discovery'),
-    'id':       ('T1033',     'System Owner/User Discovery'),
-    'crontab':  ('T1053.003', 'Scheduled Task/Job: Cron'),
-    'at':       ('T1053.001', 'Scheduled Task/Job: At'),
-    'passwd':   ('T1531',     'Account Access Removal'),
+    # ── Ingress / C2 ──────────────────────────────────────────────────────────
+    'wget':      ('T1105',     'Ingress Tool Transfer'),
+    'curl':      ('T1105',     'Ingress Tool Transfer'),
+    # ── Execution ─────────────────────────────────────────────────────────────
+    'nc':        ('T1059',     'Command and Script Interpreter'),
+    'ncat':      ('T1059',     'Command and Script Interpreter'),
+    'netcat':    ('T1059',     'Command and Script Interpreter'),
+    'socat':     ('T1071',     'Application Layer Protocol'),
+    'python':    ('T1059.006', 'Python'),
+    'python3':   ('T1059.006', 'Python'),
+    'perl':      ('T1059',     'Command and Script Interpreter'),
+    'ruby':      ('T1059',     'Command and Script Interpreter'),
+    'php':       ('T1059',     'Command and Script Interpreter'),
+    'bash':      ('T1059.004', 'Unix Shell'),
+    'sh':        ('T1059.004', 'Unix Shell'),
+    # ── Defense Evasion ───────────────────────────────────────────────────────
+    'shred':     ('T1070.002', 'Indicator Removal: Clear Linux Logs'),
+    'truncate':  ('T1070.002', 'Indicator Removal: Clear Linux Logs'),
+    'history':   ('T1070.003', 'Indicator Removal: Clear Command History'),
+    'unset':     ('T1070.003', 'Indicator Removal: Clear Command History'),
+    'chmod':     ('T1222',     'File and Directory Permissions Modification'),
+    # ── Discovery ─────────────────────────────────────────────────────────────
+    'whoami':    ('T1033',     'System Owner/User Discovery'),
+    'id':        ('T1033',     'System Owner/User Discovery'),
+    'uname':     ('T1082',     'System Information Discovery'),
+    'hostname':  ('T1082',     'System Information Discovery'),
+    'ps':        ('T1057',     'Process Discovery'),
+    'netstat':   ('T1049',     'System Network Connections Discovery'),
+    'ss':        ('T1049',     'System Network Connections Discovery'),
+    'ifconfig':  ('T1016',     'System Network Configuration Discovery'),
+    'ip':        ('T1016',     'System Network Configuration Discovery'),
+    'find':      ('T1083',     'File and Directory Discovery'),
+    'nmap':      ('T1046',     'Network Service Scanning'),
+    'masscan':   ('T1046',     'Network Service Scanning'),
+    # ── Lateral Movement / Exfiltration ───────────────────────────────────────
+    'ssh':       ('T1021.004', 'Remote Services: SSH'),
+    'scp':       ('T1048',     'Exfiltration Over Alternative Protocol'),
+    'rsync':     ('T1048',     'Exfiltration Over Alternative Protocol'),
+    'ftp':       ('T1048',     'Exfiltration Over Alternative Protocol'),
+    'sftp':      ('T1048',     'Exfiltration Over Alternative Protocol'),
+    # ── Archive / Staging ─────────────────────────────────────────────────────
+    'tar':       ('T1560.001', 'Archive Collected Data: Archive via Utility'),
+    'zip':       ('T1560.001', 'Archive Collected Data: Archive via Utility'),
+    'gzip':      ('T1560.001', 'Archive Collected Data: Archive via Utility'),
+    'base64':    ('T1132.001', 'Data Encoding: Standard Encoding'),
+    # ── Persistence ───────────────────────────────────────────────────────────
+    'crontab':   ('T1053.003', 'Scheduled Task/Job: Cron'),
+    'at':        ('T1053.001', 'Scheduled Task/Job: At'),
+    'useradd':   ('T1136.001', 'Create Account: Local Account'),
+    'adduser':   ('T1136.001', 'Create Account: Local Account'),
+    'usermod':   ('T1098',     'Account Manipulation'),
+    'passwd':    ('T1531',     'Account Access Removal'),
+    # ── Credential Access ─────────────────────────────────────────────────────
+    'john':      ('T1110.002', 'Brute Force: Password Cracking'),
+    'hashcat':   ('T1110.002', 'Brute Force: Password Cracking'),
+    'hydra':     ('T1110.001', 'Brute Force: Password Guessing'),
 }
 
 

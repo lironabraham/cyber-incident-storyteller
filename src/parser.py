@@ -198,7 +198,18 @@ def _parse_audit_log(path: Path) -> pd.DataFrame:
 
             # Classify by record type and result
             res = fields.get('res', '')
-            if record_type == 'EXECVE':
+            if record_type == 'PROCTITLE':
+                # Hex-encoded null-separated argv: decode and extract base command
+                raw_proctitle = fields.get('proctitle', '')
+                try:
+                    argv = bytes.fromhex(raw_proctitle).split(b'\x00')
+                    command = argv[0].decode('utf-8', errors='replace')
+                except (ValueError, UnicodeDecodeError):
+                    command = raw_proctitle
+                event_type = 'Process Execution'
+                user = command or user
+                source_ip = None
+            elif record_type == 'EXECVE':
                 event_type = 'Process Execution'
                 user = fields.get('a0') or user   # store command as user for routing
                 source_ip = None
@@ -335,13 +346,103 @@ def _parse_web_access(path: Path) -> pd.DataFrame:
     return df.sort_values('timestamp').reset_index(drop=True)
 
 
+# ── Linux Sysmon XML parser ────────────────────────────────────────────────────
+
+_SYSMON_SHELLS    = {'bash', 'sh', 'zsh', 'fish', 'dash', 'ksh'}
+_SYSMON_SENSITIVE = ('/etc/passwd', '/etc/shadow', '/etc/sudoers', '/root/')
+
+
+def _parse_sysmon_linux(path: Path) -> pd.DataFrame:
+    """Parse a Linux Sysmon XML log (one <Event> per line) into a unified DataFrame."""
+    import datetime as _dt
+    import xml.etree.ElementTree as ET
+
+    rows = []
+    with open(path, encoding='utf-8', errors='replace') as fh:
+        for raw in fh:
+            line = raw.strip()
+            if not line.startswith('<Event'):
+                continue
+            try:
+                root = ET.fromstring(line)
+            except ET.ParseError:
+                continue
+
+            event_id = root.findtext('System/EventID') or ''
+            if event_id == '5':
+                continue  # Process Terminated — noise
+
+            tc = root.find('System/TimeCreated')
+            ts_str = tc.get('SystemTime', '') if tc is not None else ''
+            try:
+                # Truncate sub-microsecond precision before parsing
+                ts_str = ts_str[:26] + 'Z' if len(ts_str) > 26 else ts_str
+                timestamp = _dt.datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+            except ValueError:
+                timestamp = pd.NaT
+
+            hostname = root.findtext('System/Computer') or ''
+            data = {d.get('Name'): d.text for d in root.findall('EventData/Data')}
+
+            image    = data.get('Image', '') or ''
+            cmd_line = data.get('CommandLine', '') or ''
+            user     = data.get('User') or None
+            proc     = image.split('/')[-1] if image else 'sysmon'
+
+            if event_id == '1':
+                base = proc.lower()
+                if base in _SYSMON_SHELLS:
+                    event_type = 'Shell Execution'
+                    user_field = cmd_line or proc
+                else:
+                    event_type = 'Process Execution'
+                    user_field = cmd_line or proc   # stored in user for map_command routing
+                source_ip  = None
+            elif event_id == '3':
+                event_type = 'Network Connection'
+                source_ip  = data.get('DestinationIp') or None
+                user_field = user
+            elif event_id == '11':
+                target = data.get('TargetFilename', '') or ''
+                if any(s in target for s in _SYSMON_SENSITIVE):
+                    event_type = 'File Access'
+                else:
+                    event_type = 'Other'
+                source_ip  = None
+                user_field = user
+            elif event_id == '23':
+                event_type = 'File Deleted'
+                source_ip  = None
+                user_field = user
+            else:
+                event_type = 'Other'
+                source_ip  = None
+                user_field = user
+
+            rows.append({
+                'timestamp':  timestamp,
+                'hostname':   hostname,
+                'process':    proc,
+                'event_type': event_type,
+                'source_ip':  source_ip,
+                'user':       user_field,
+                'raw':        line,
+            })
+
+    df = pd.DataFrame(rows, columns=['timestamp', 'hostname', 'process',
+                                     'event_type', 'source_ip', 'user', 'raw'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+    return df.sort_values('timestamp').reset_index(drop=True)
+
+
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 SUPPORTED_FORMATS = {
-    'auth_log':   _parse_auth_log,
-    'syslog':     _parse_syslog,
-    'audit_log':  _parse_audit_log,
-    'web_access': _parse_web_access,
+    'auth_log':     _parse_auth_log,
+    'syslog':       _parse_syslog,
+    'audit_log':    _parse_audit_log,
+    'web_access':   _parse_web_access,
+    'sysmon_linux': _parse_sysmon_linux,
 }
 
 

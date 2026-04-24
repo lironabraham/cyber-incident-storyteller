@@ -22,7 +22,8 @@ from datetime import timedelta
 
 from schema import StandardEvent
 
-_SUCCESS_TYPES = {'Accepted Password', 'Accepted Publickey'}
+_SUCCESS_TYPES  = {'Accepted Password', 'Accepted Publickey', 'Audit Login'}
+_FAILURE_TYPES  = {'Failed Login', 'Invalid User', 'Auth Failure', 'Audit Auth Failure'}
 _SEVERITY_ORDER = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 
 
@@ -51,8 +52,8 @@ def _classify_chain(events: list[StandardEvent]) -> tuple[str, bool]:
     """Classify the attack chain type and whether a compromise occurred."""
     types = {e.event_type for e in events}
     has_success = bool(types & _SUCCESS_TYPES)
-    has_failures = 'Failed Login' in types
-    has_post_exploit = bool({'Sudo Command', 'Session Opened'} & types)
+    has_failures = bool(types & _FAILURE_TYPES)
+    has_post_exploit = bool({'Sudo Command', 'Session Opened', 'Shell Execution', 'Process Execution'} & types)
 
     if has_success and has_failures and has_post_exploit:
         return 'post_exploitation', True
@@ -99,7 +100,7 @@ def find_triggers(events: list[StandardEvent], threshold: int = 5) -> list[str]:
     """
     counts: dict[str, int] = defaultdict(int)
     for event in events:
-        if event.event_type == 'Failed Login':
+        if event.event_type in _FAILURE_TYPES:
             ip = event.source_actor.get('ip')
             if ip:
                 counts[ip] += 1

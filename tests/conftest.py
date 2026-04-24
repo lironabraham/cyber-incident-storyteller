@@ -91,3 +91,9 @@ def audit_log(tmp_path) -> Path:
 def web_log(tmp_path) -> Path:
     from generate_lab import generate_web_lab
     return generate_web_lab(output_path=tmp_path / 'lab_web.log')
+
+
+@pytest.fixture
+def sysmon_linux_log(tmp_path) -> Path:
+    from generate_lab import generate_sysmon_linux_lab
+    return generate_sysmon_linux_lab(output_path=tmp_path / 'lab_sysmon_linux.log')

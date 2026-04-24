@@ -71,7 +71,9 @@ def _compute_severity(
     # ── syslog ────────────────────────────────────────────────────────────────
     if event_type == 'Cron Execution':
         return 'low'
-    if event_type in ('Service Started', 'Service Stopped', 'Service Failed', 'OOM Kill'):
+    if event_type == 'Service Stopped':
+        return 'medium'
+    if event_type in ('Service Started', 'Service Failed', 'OOM Kill'):
         return 'low'
     if event_type == 'USB Connected':
         return 'medium'
@@ -98,6 +100,12 @@ def _compute_severity(
         return 'medium'
     if event_type == 'Web Request':
         return 'info'
+
+    # ── sysmon_linux ──────────────────────────────────────────────────────────
+    if event_type == 'Network Connection':
+        return 'low'
+    if event_type == 'File Deleted':
+        return 'medium'
 
     return 'low'
 
@@ -162,6 +170,11 @@ def _action_taken(event_type: str, user: str | None, ip: str | None, raw: str) -
         return f"Admin panel access from {s}"
     if event_type == 'Web Request':
         return f"Web request from {s}"
+    # ── sysmon_linux ──────────────────────────────────────────────────────────
+    if event_type == 'Network Connection':
+        return f"Outbound network connection to {s}"
+    if event_type == 'File Deleted':
+        return f"File deleted by process (possible indicator removal)"
     return event_type
 
 
