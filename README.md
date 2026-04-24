@@ -19,6 +19,63 @@ logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  
 
 ---
 
+## Quickstart
+
+**Requirements:** Python 3.12+
+
+```bash
+git clone https://github.com/lironabraham/cyber-incident-storyteller
+cd cyber-incident-storyteller
+pip install .
+```
+
+**See it work immediately (no log file needed):**
+
+```bash
+ais demo
+```
+
+Generates a synthetic multi-stage attack, runs the full pipeline, and prints the report.
+
+**Analyze your own log:**
+
+```bash
+ais analyze logs/auth.log --fmt auth_log --output reports/incident.md
+```
+
+Open `reports/incident.md` in any Markdown viewer that renders Mermaid diagrams (GitHub, VS Code with Mermaid plugin, Obsidian).
+
+**Docker:**
+
+```bash
+docker build -t ais .
+docker run --rm ais demo
+
+# Mount your own logs:
+docker run --rm -v $(pwd)/logs:/workspace/logs ais analyze logs/auth.log
+```
+
+---
+
+## CLI reference
+
+```
+ais analyze <log_path>
+    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux  (default: auth_log)
+    --output        path to write the Markdown report                   (default: reports/incident.md)
+    --processed-dir directory for SHA-256 hashes and event cache        (default: data/processed)
+    --threshold     min failed logins to flag an IP as attacker         (default: 5)
+
+ais verify <log_path>
+    --processed-dir directory containing the stored SHA-256 hash        (default: data/processed)
+
+ais demo    — self-contained demo with synthetic attack log
+
+Exit codes: 0 success · 1 error · 2 integrity verification failure
+```
+
+---
+
 ## Supported log formats
 
 | Format key | Source | What it covers |
@@ -31,51 +88,13 @@ logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  
 
 ---
 
-## Quickstart
-
-**Requirements:** Python 3.12+
-
-```bash
-git clone https://github.com/lironabraham/cyber-incident-storyteller
-cd cyber-incident-storyteller
-pip install -r requirements.txt
-```
-
-**Run on your own log:**
-
-```bash
-py -c "
-import sys; sys.path.insert(0, 'src')
-from ingest import ingest
-from hunter import build_attack_chains
-from reporter import generate_report
-from pathlib import Path
-
-events = ingest('logs/auth.log', fmt='auth_log', processed_dir=Path('data/processed'))
-chains = build_attack_chains(events)
-generate_report(chains, events, output_path=Path('reports/incident.md'))
-"
-```
-
-Open `reports/incident.md` in any Markdown viewer that renders Mermaid diagrams (GitHub, VS Code with Mermaid plugin, Obsidian).
-
-**Try it with a generated lab attack:**
-
-```bash
-py src/generate_lab.py          # generates logs/lab_attack.log
-```
-
-Then run the pipeline on `logs/lab_attack.log` with `fmt='auth_log'`.
-
----
-
 ## Report structure
 
 Every generated report contains:
 
 - **Executive Summary (BLUF)** — one paragraph, board-readable
 - **Attack Timeline** — chronological table of every attacker action with MITRE technique and severity
-- **Sequence Diagram** — Mermaid.js diagram showing attacker → server interactions
+- **Sequence Diagram** — Mermaid.js diagram showing attacker -> server interactions
 - **Threat Actor Detail** — per-IP breakdown of tactics used
 - **Recommendations** — prioritised response actions
 - **Forensic Integrity** — SHA-256 hash of every source log, stored in `data/processed/`
@@ -110,8 +129,8 @@ Severity is context-aware, not static:
 
 | Condition | Severity |
 |---|---|
-| 1–4 failed logins from an IP | `low` |
-| 5–19 failed logins from an IP | `medium` |
+| 1-4 failed logins from an IP | `low` |
+| 5-19 failed logins from an IP | `medium` |
 | 20+ failed logins from an IP | `high` |
 | Successful login after 5+ failures | `critical` |
 | Web shell (POST to .php/.asp returning 200) | `critical` |
@@ -123,25 +142,22 @@ Severity is context-aware, not static:
 
 ---
 
-## Running tests
-
-```bash
-py -m pytest tests/          # 271 tests
-py -m pytest tests/ --cov=src
-```
-
----
-
 ## Forensic integrity
 
 Every log file ingested gets a SHA-256 hash written to `data/processed/<stem>.sha256`. Verify a log hasn't been tampered with after ingestion:
 
 ```bash
-py -c "
-import sys; sys.path.insert(0, 'src')
-from ingest import verify_integrity
-print(verify_integrity('logs/auth.log'))   # True = intact, False = modified or not ingested
-"
+ais verify logs/auth.log
+# exit 0 = intact, exit 2 = tampered or not yet ingested
+```
+
+---
+
+## Running tests
+
+```bash
+py -m pytest tests/          # 284 tests
+py -m pytest tests/ --cov=src
 ```
 
 ---
@@ -150,16 +166,21 @@ print(verify_integrity('logs/auth.log'))   # True = intact, False = modified or 
 
 ```
 src/
+  storyteller.py   — CLI entrypoint (ais analyze / verify / demo)
   parser.py        — log parsers (5 formats)
-  schema.py        — StandardEvent dataclass
+  schema.py        — StandardEvent dataclass + TypedDicts
   ingest.py        — normalization, severity scoring, SHA-256 hashing
   mitre.py         — MITRE ATT&CK lookup (40+ techniques, 53 commands)
   hunter.py        — Trigger-Pivot attack chain engine
   reporter.py      — Markdown + Mermaid report generator
   generate_lab.py  — synthetic attack log generators
+  __init__.py      — public library API
 
-tests/             — 271 tests across all modules
+pyproject.toml     — pip-installable package (ais-storyteller)
+Dockerfile         — multi-stage build, ENTRYPOINT ais
+tests/             — 284 tests across all modules
 logs/              — input log files (read-only, never modified)
 data/processed/    — normalized JSON + SHA-256 hashes (generated)
 reports/           — generated incident reports (generated)
+docs/              — forensic integrity design whitepaper
 ```
