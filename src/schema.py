@@ -72,4 +72,7 @@ def from_json(d: dict) -> StandardEvent:
         d['timestamp'] = ts
     else:
         d['timestamp'] = None
-    return StandardEvent(**d)
+    try:
+        return StandardEvent(**d)
+    except TypeError as exc:
+        raise ValueError(f'Cannot deserialize StandardEvent: {exc}') from exc

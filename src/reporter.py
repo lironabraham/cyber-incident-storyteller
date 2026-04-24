@@ -133,12 +133,12 @@ def _mermaid_diagram(chains: list[AttackChain]) -> str:
         e.target_system.get('hostname', 'server') for e in chain.events
     ))[:3]
     for host in hosts:
-        safe = host.replace('-', '_')[:12]
+        safe = host.replace('-', '_').replace('.', '_')[:12]
         lines.append(f'    participant {safe} as {host}')
 
     for event in chain.events:
         host = event.target_system.get('hostname', 'server')
-        safe_host = host.replace('-', '_')[:12]
+        safe_host = host.replace('-', '_').replace('.', '_')[:12]
         mid = event.mitre_technique.get('id')
         mitre_label = f' [{mid}]' if mid else ''
         ts = event.timestamp.strftime('%H:%M:%S')

@@ -29,7 +29,7 @@ from parser import parse_log
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-_SUCCESS_TYPES = {'Accepted Password', 'Accepted Publickey'}
+_SUCCESS_TYPES = {'Accepted Password', 'Accepted Publickey', 'Audit Login'}
 _SEVERITY_ORDER = ('info', 'low', 'medium', 'high', 'critical')
 
 _DEFAULT_PROCESSED_DIR = Path(__file__).parent.parent / 'data' / 'processed'
@@ -210,16 +210,20 @@ def ingest(
     processed_dir = Path(processed_dir)
     processed_dir.mkdir(parents=True, exist_ok=True)
 
-    # Store integrity hash before any processing
+    # Store integrity hash before any processing.
+    # Use a collision-safe key: stem + 8-char hash of the resolved absolute path,
+    # so two files named 'auth.log' from different directories get distinct records.
+    path_tag = hashlib.sha256(str(log_path.resolve()).encode()).hexdigest()[:8]
+    safe_stem = f'{log_path.stem}_{path_tag}'
     hash_val = _sha256(log_path)
-    (processed_dir / f'{log_path.stem}.sha256').write_text(hash_val, encoding='utf-8')
+    (processed_dir / f'{safe_stem}.sha256').write_text(hash_val, encoding='utf-8')
 
     df = parse_log(log_path, fmt=fmt)
 
     # First pass: tally failures per IP for context-aware severity
     ip_failure_counts: dict[str, int] = {}
     for _, row in df.iterrows():
-        if row['event_type'] == 'Failed Login':
+        if row['event_type'] in ('Failed Login', 'Invalid User', 'Audit Auth Failure'):
             ip = row.get('source_ip')
             if ip and pd.notna(ip):
                 ip_failure_counts[ip] = ip_failure_counts.get(ip, 0) + 1
@@ -277,7 +281,7 @@ def ingest(
         ))
 
     # Persist processed events
-    (processed_dir / f'{log_path.stem}.json').write_text(
+    (processed_dir / f'{safe_stem}.json').write_text(
         json.dumps([to_json(e) for e in events], indent=2, default=str),
         encoding='utf-8',
     )
@@ -296,7 +300,9 @@ def verify_integrity(
     log_path = Path(log_path)
     if processed_dir is None:
         processed_dir = _DEFAULT_PROCESSED_DIR
-    hash_file = Path(processed_dir) / f'{log_path.stem}.sha256'
+    path_tag = hashlib.sha256(str(log_path.resolve()).encode()).hexdigest()[:8]
+    safe_stem = f'{log_path.stem}_{path_tag}'
+    hash_file = Path(processed_dir) / f'{safe_stem}.sha256'
     if not hash_file.exists():
         return False
     stored = hash_file.read_text(encoding='utf-8').strip()

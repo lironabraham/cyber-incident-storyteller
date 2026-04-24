@@ -68,7 +68,7 @@ def _classify_chain(events: list[StandardEvent]) -> tuple[str, bool]:
     if has_success and has_failures:
         return 'credential_stuffing', True
     if has_success:
-        return 'credential_stuffing', True
+        return 'unauthorized_access', True
     return 'brute_force', False
 
 

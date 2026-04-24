@@ -65,24 +65,24 @@ class TestIngest:
 
     def test_sha256_file_created(self, sample_log, tmp_path):
         ingest(sample_log, processed_dir=tmp_path)
-        hash_file = tmp_path / f'{sample_log.stem}.sha256'
-        assert hash_file.exists()
-        assert len(hash_file.read_text().strip()) == 64  # SHA-256 hex length
+        sha256_files = list(tmp_path.glob(f'{sample_log.stem}_*.sha256'))
+        assert len(sha256_files) == 1
+        assert len(sha256_files[0].read_text().strip()) == 64  # SHA-256 hex length
 
     def test_json_file_created(self, sample_log, tmp_path):
         ingest(sample_log, processed_dir=tmp_path)
-        json_file = tmp_path / f'{sample_log.stem}.json'
-        assert json_file.exists()
+        json_files = list(tmp_path.glob(f'{sample_log.stem}_*.json'))
+        assert len(json_files) == 1
 
     def test_json_file_is_valid(self, sample_log, tmp_path):
         ingest(sample_log, processed_dir=tmp_path)
-        json_file = tmp_path / f'{sample_log.stem}.json'
+        json_file = next(tmp_path.glob(f'{sample_log.stem}_*.json'))
         data = json.loads(json_file.read_text())
         assert isinstance(data, list)
 
     def test_json_round_trip_preserves_event_type(self, sample_log, tmp_path):
         events = ingest(sample_log, processed_dir=tmp_path)
-        json_file = tmp_path / f'{sample_log.stem}.json'
+        json_file = next(tmp_path.glob(f'{sample_log.stem}_*.json'))
         data = json.loads(json_file.read_text())
         original_types = [e.event_type for e in events]
         json_types = [d['event_type'] for d in data]
