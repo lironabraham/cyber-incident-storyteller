@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+  packages: write   # needed for GHCR push
+
+jobs:
+  # ── 1. Run the full test suite before releasing ──────────────────────────────
+  test:
+    name: Test before release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: pytest tests/ -q --tb=short
+
+  # ── 2. Build and publish to PyPI ─────────────────────────────────────────────
+  pypi:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ais-storyteller/
+    permissions:
+      id-token: write   # required for trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build wheel and sdist
+        run: |
+          pip install build
+          python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # ── 3. Build and push Docker image to GHCR ───────────────────────────────────
+  docker:
+    name: Publish Docker image to GHCR
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version tag
+        id: tag
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ais-storyteller:${{ steps.tag.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/ais-storyteller:latest
+
+  # ── 4. Create GitHub Release with install instructions ───────────────────────
+  github-release:
+    name: Create GitHub Release
+    needs: [pypi, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for changelog generation
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Install
+
+            ```bash
+            pip install ais-storyteller==${{ github.ref_name }}
+            ```
+
+            ## Docker
+
+            ```bash
+            docker run --rm -v /var/log:/logs:ro ghcr.io/${{ github.repository_owner }}/ais-storyteller:${{ github.ref_name }} analyze /logs/auth.log
+            ```
