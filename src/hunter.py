@@ -19,8 +19,16 @@ build_attack_chains(events, threshold)      -> list[AttackChain]
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import TypedDict
 
 from schema import StandardEvent
+
+
+class MitreTechniqueRef(TypedDict):
+    """Per-chain technique entry — extends MitreTechnique with the source event_type."""
+    id: str | None
+    name: str | None
+    event_type: str
 
 _SUCCESS_TYPES  = {'Accepted Password', 'Accepted Publickey', 'Audit Login'}
 _FAILURE_TYPES  = {'Failed Login', 'Invalid User', 'Auth Failure', 'Audit Auth Failure'}
@@ -32,12 +40,12 @@ _SEVERITY_ORDER = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 @dataclass
 class AttackChain:
     actor_ip: str
-    actor_user: str | None          # most-targeted or compromised account
-    severity: str                   # max severity across all events in the chain
-    mitre_techniques: list[dict]    # unique techniques, ordered by first appearance
-    events: list[StandardEvent]     # causally-linked events, sorted by timestamp
-    chain_type: str                 # 'brute_force' | 'credential_stuffing' | 'post_exploitation'
-    compromised: bool               # True if attacker achieved a successful login
+    actor_user: str | None                # most-targeted or compromised account
+    severity: str                         # max severity across all events in the chain
+    mitre_techniques: list[MitreTechniqueRef]  # unique techniques, ordered by first appearance
+    events: list[StandardEvent]           # causally-linked events, sorted by timestamp
+    chain_type: str                       # 'brute_force' | 'credential_stuffing' | 'post_exploitation'
+    compromised: bool                     # True if attacker achieved a successful login
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
@@ -74,7 +82,7 @@ def _primary_user(events: list[StandardEvent]) -> str | None:
     return max(counts, key=counts.get) if counts else None
 
 
-def _unique_techniques(events: list[StandardEvent]) -> list[dict]:
+def _unique_techniques(events: list[StandardEvent]) -> list[MitreTechniqueRef]:
     """Collect unique MITRE techniques in order of first appearance."""
     seen: set[str] = set()
     techniques = []

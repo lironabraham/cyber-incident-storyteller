@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from schema import StandardEvent, make_event_id, to_json, from_json
+from schema import StandardEvent, make_event_id, to_json, from_json, SourceActor, TargetSystem, MitreTechnique
 
 
 def _make_event(**kwargs) -> StandardEvent:
@@ -137,3 +137,43 @@ class TestFromJson:
         d['timestamp'] = None
         e2 = from_json(d)
         assert e2.timestamp is None
+
+    def test_full_json_string_round_trip(self):
+        e = _make_event()
+        serialized = json.dumps(to_json(e))
+        e2 = from_json(json.loads(serialized))
+        assert e2.source_actor == {'ip': '1.2.3.4', 'user': 'root'}
+        assert e2.target_system == {'hostname': 'server1', 'process': 'sshd'}
+        assert e2.mitre_technique == {'id': 'T1110', 'name': 'Brute Force'}
+
+
+class TestTypedDicts:
+    def test_source_actor_importable(self):
+        actor: SourceActor = {'ip': '1.2.3.4', 'user': 'root'}
+        assert actor['ip'] == '1.2.3.4'
+
+    def test_target_system_importable(self):
+        system: TargetSystem = {'hostname': 'server1', 'process': 'sshd'}
+        assert system['hostname'] == 'server1'
+
+    def test_mitre_technique_importable(self):
+        technique: MitreTechnique = {'id': 'T1110', 'name': 'Brute Force'}
+        assert technique['id'] == 'T1110'
+
+    def test_standard_event_accepts_typed_dicts(self):
+        e = StandardEvent(
+            event_id=make_event_id(),
+            timestamp=datetime(2024, 4, 23, 10, 0, 0, tzinfo=timezone.utc),
+            event_type='Failed Login',
+            source_actor=SourceActor(ip='1.2.3.4', user='root'),
+            target_system=TargetSystem(hostname='server1', process='sshd'),
+            action_taken='Failed login',
+            severity='low',
+            mitre_technique=MitreTechnique(id='T1110', name='Brute Force'),
+            raw='raw line',
+            source_log='auth.log',
+            log_format='auth_log',
+        )
+        assert e.source_actor['ip'] == '1.2.3.4'
+        assert e.target_system['hostname'] == 'server1'
+        assert e.mitre_technique['id'] == 'T1110'

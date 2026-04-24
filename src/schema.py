@@ -8,22 +8,38 @@ analysis. The raw original log line is always preserved unmodified.
 import uuid
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
+from typing import TypedDict
+
+
+class SourceActor(TypedDict):
+    ip: str | None
+    user: str | None
+
+
+class TargetSystem(TypedDict):
+    hostname: str
+    process: str
+
+
+class MitreTechnique(TypedDict):
+    id: str | None
+    name: str | None
 
 
 @dataclass
 class StandardEvent:
-    event_id: str          # UUID4 — unique per parsed event
-    timestamp: datetime    # UTC-aware datetime
-    event_type: str        # 'Failed Login', 'Accepted Password', etc.
-    source_actor: dict     # {'ip': str|None, 'user': str|None}
-    target_system: dict    # {'hostname': str, 'process': str}
-    action_taken: str      # human-readable description of the event
-    severity: str          # 'info' | 'low' | 'medium' | 'high' | 'critical'
-    mitre_technique: dict  # {'id': str|None, 'name': str|None}
-    raw: str               # original log line — NEVER modified
-    source_log: str        # filename of the origin log file
-    log_format: str        # 'auth_log' | 'cloudtrail' | 'evtx'
-    pid: str | None = None  # syslog PID for session-affinity linking
+    event_id: str                    # UUID4 — unique per parsed event
+    timestamp: datetime              # UTC-aware datetime
+    event_type: str                  # 'Failed Login', 'Accepted Password', etc.
+    source_actor: SourceActor        # {'ip': str|None, 'user': str|None}
+    target_system: TargetSystem      # {'hostname': str, 'process': str}
+    action_taken: str                # human-readable description of the event
+    severity: str                    # 'info' | 'low' | 'medium' | 'high' | 'critical'
+    mitre_technique: MitreTechnique  # {'id': str|None, 'name': str|None}
+    raw: str                         # original log line — NEVER modified
+    source_log: str                  # filename of the origin log file
+    log_format: str                  # 'auth_log' | 'syslog' | 'audit_log' | 'web_access' | 'sysmon_linux'
+    pid: str | None = None           # syslog PID for session-affinity linking
 
     def __post_init__(self):
         # Enforce UTC-aware timestamp

@@ -95,40 +95,33 @@ py src/parser.py logs/auth.log
 # Generate all synthetic lab log fixtures
 py src/generate_lab.py
 
-# Run the full ingest → hunt → report pipeline
-py -c "
-import sys; sys.path.insert(0, 'src')
-from ingest import ingest
-from hunter import build_attack_chains
-from reporter import generate_report
-from pathlib import Path
-events = ingest('logs/auth.log', fmt='auth_log', processed_dir=Path('data/processed'))
-chains = build_attack_chains(events)
-generate_report(chains, events, output_path=Path('reports/incident.md'))
-"
+# Run the full ingest → hunt → report pipeline (auth.log)
+py src/storyteller.py analyze logs/auth.log --fmt auth_log --output reports/incident.md
 
-# Run the full test suite (271 tests)
+# Run on a Linux Sysmon XML log
+py src/storyteller.py analyze logs/sysmon.log --fmt sysmon_linux --output reports/incident.md
+
+# Verify forensic integrity of an ingested log
+py src/storyteller.py verify logs/auth.log
+
+# Run the full test suite
 py -m pytest tests/
 
 # Run with coverage
 py -m pytest tests/ --cov=src
+```
 
-# Run on a Linux Sysmon XML log
-py -c "
-import sys; sys.path.insert(0, 'src')
-from ingest import ingest
-from hunter import build_attack_chains
-from reporter import generate_report
-from pathlib import Path
-events = ingest('logs/sysmon.log', fmt='sysmon_linux', processed_dir=Path('data/processed'))
-chains = build_attack_chains(events)
-generate_report(chains, events, output_path=Path('reports/incident.md'))
-"
+### CLI reference
 
-# Verify forensic integrity of an ingested log
-py -c "
-import sys; sys.path.insert(0, 'src')
-from ingest import verify_integrity
-print(verify_integrity('logs/auth.log'))
-"
+```
+py src/storyteller.py analyze <log_path>
+    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux  (default: auth_log)
+    --output        path to write the Markdown report                   (default: reports/incident.md)
+    --processed-dir directory for SHA-256 hashes and event cache        (default: data/processed)
+    --threshold     min failed logins to flag an IP as attacker         (default: 5)
+
+py src/storyteller.py verify <log_path>
+    --processed-dir directory containing the stored SHA-256 hash        (default: data/processed)
+
+Exit codes: 0 success · 1 error · 2 integrity verification failure
 ```
