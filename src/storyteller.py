@@ -152,7 +152,7 @@ def analyze(df: pd.DataFrame, log_path: str = 'auth.log') -> IncidentReport:
 def generate_narrative(inc: IncidentReport) -> str:
     """Render an IncidentReport as a human-readable text narrative."""
     W = 70
-    sep = '─' * W
+    sep = '-' * W
     dbl = '=' * W
 
     lines = [
@@ -167,7 +167,7 @@ def generate_narrative(inc: IncidentReport) -> str:
         return '\n'.join(lines)
 
     lines += [
-        f'Period   : {inc.start_time}  →  {inc.end_time}',
+        f'Period   : {inc.start_time}  ->  {inc.end_time}',
         f'Events   : {inc.total_events} total',
         '',
     ]
@@ -214,7 +214,7 @@ def generate_narrative(inc: IncidentReport) -> str:
                 f'    Failed      : {actor.failed_attempts}',
                 f'    Successful  : {actor.successful_logins}',
                 f'    Users       : {users_str}',
-                f'    Active      : {actor.first_seen}  →  {actor.last_seen}',
+                f'    Active      : {actor.first_seen}  ->  {actor.last_seen}',
                 '',
             ]
         if len(inc.threat_actors) > 10:
@@ -271,6 +271,34 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_demo(_args: argparse.Namespace) -> int:
+    import tempfile
+    from ingest import ingest
+    from hunter import build_attack_chains
+    from reporter import generate_report
+    from generate_lab import generate_lab
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        log_path = generate_lab(output_path=tmp_path / 'demo_attack.log')
+        processed_dir = tmp_path / 'processed'
+        report_path = tmp_path / 'demo_report.md'
+
+        print('Generating synthetic multi-stage attack log...')
+        events = ingest(log_path, fmt='auth_log', processed_dir=processed_dir)
+        print(f'Ingested {len(events)} events. Hunting attack chains...')
+        chains = build_attack_chains(events)
+        print(f'Found {len(chains)} attack chain(s). Building report...')
+        generate_report(chains, events, output_path=report_path)
+        report_text = report_path.read_text(encoding='utf-8')
+
+    print('\n' + '=' * 70)
+    print(report_text)
+    print('=' * 70)
+    print(f'\nDemo complete. {len(chains)} chain(s), {len(events)} events analyzed.')
+    return 0
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     from ingest import verify_integrity
 
@@ -313,11 +341,15 @@ def main(argv: list[str] | None = None) -> int:
     p_verify.add_argument('--processed-dir', default='data/processed',
                           help='Directory containing SHA-256 hash files')
 
+    sub.add_parser('demo', help='Run a self-contained demo: generate synthetic logs, hunt chains, print report')
+
     args = p.parse_args(argv)
     if args.command == 'analyze':
         return _cmd_analyze(args)
     if args.command == 'verify':
         return _cmd_verify(args)
+    if args.command == 'demo':
+        return _cmd_demo(args)
     return 1
 
 

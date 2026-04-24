@@ -166,16 +166,16 @@ def _threat_actor_detail(chains: list[AttackChain]) -> str:
 
         lines.append(f'### `{chain.actor_ip}` — {sev}')
         lines.append(f'- **Chain type**: {chain.chain_type.replace("_", " ").title()}')
-        lines.append(f'- **Compromised**: {"Yes ⚠" if chain.compromised else "No"}')
+        lines.append(f'- **Compromised**: {"Yes [!]" if chain.compromised else "No"}')
         if chain.actor_user:
             lines.append(f'- **Primary target account**: `{chain.actor_user}`')
         if chain.mitre_techniques:
-            tech_str = ' → '.join(
+            tech_str = ' -> '.join(
                 f"`{t['id']}`" for t in chain.mitre_techniques if t['id']
             )
             lines.append(f'- **Attack progression**: {tech_str}')
         lines.append(f'- **Events in chain**: {len(chain.events)}')
-        lines.append(f'- **Active window**: {start} → {end}')
+        lines.append(f'- **Active window**: {start} -> {end}')
         lines.append('')
 
     return '\n'.join(lines)

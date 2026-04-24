@@ -33,11 +33,12 @@ All source modules live in `src/`. Each has a single responsibility:
 | Module | Role |
 |---|---|
 | `parser.py` | Regex-based log parsers → unified `pd.DataFrame` |
-| `schema.py` | `StandardEvent` dataclass + `make_event_id()` / `to_json()` |
+| `schema.py` | `StandardEvent` dataclass + `SourceActor` / `TargetSystem` / `MitreTechnique` TypedDicts + `make_event_id()` / `to_json()` |
 | `ingest.py` | Wraps parser, computes context-aware severity, writes SHA-256 hash, serializes to `data/processed/` |
 | `mitre.py` | MITRE ATT&CK technique lookup by event type or command name |
-| `hunter.py` | Trigger-Pivot engine — finds brute-force IPs, pivots to full attack chains |
+| `hunter.py` | Trigger-Pivot engine — finds brute-force IPs, pivots to full attack chains; `MitreTechniqueRef` TypedDict |
 | `reporter.py` | Markdown + Mermaid.js report generator |
+| `storyteller.py` | CLI entrypoint — `analyze`, `verify`, and `demo` subcommands |
 | `generate_lab.py` | Synthetic log generators for pipeline validation and testing |
 
 ---
@@ -83,6 +84,7 @@ The original log file is **never modified**. `ingest()` writes only to `data/pro
 - **Trigger engine uses all failure types** (`Failed Login`, `Invalid User`, `Auth Failure`, `Audit Auth Failure`) — not just `Failed Login`; real honeypot logs use `Invalid User` for non-existent accounts
 - **MITRE command lookup** (`map_command()`) covers 53 commands across 7 tactic categories — add new entries to `SUSPICIOUS_COMMANDS` in `mitre.py`, not inline in parsers
 - **Sysmon EventID 5** (Process Terminated) is always skipped — pure noise with no forensic value
+- **TypedDicts** (`SourceActor`, `TargetSystem`, `MitreTechnique`) must be used for all dict-typed fields on `StandardEvent` — never bare `dict` for new schema fields; key typos are caught by mypy at type-check time
 
 ---
 
@@ -104,7 +106,7 @@ py src/storyteller.py analyze logs/sysmon.log --fmt sysmon_linux --output report
 # Verify forensic integrity of an ingested log
 py src/storyteller.py verify logs/auth.log
 
-# Run the full test suite
+# Run the full test suite (284 tests)
 py -m pytest tests/
 
 # Run with coverage
@@ -125,3 +127,7 @@ py src/storyteller.py verify <log_path>
 
 Exit codes: 0 success · 1 error · 2 integrity verification failure
 ```
+
+---
+
+> **Private:** See local `ROADMAP.md` (gitignored) for the VC product strategy and phase-by-phase feature roadmap.
