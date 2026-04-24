@@ -1,5 +1,9 @@
 # Cyber Incident Storyteller
 
+[![Tests](https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml/badge.svg)](https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml)
+[![PyPI](https://img.shields.io/pypi/v/ais-storyteller)](https://pypi.org/project/ais-storyteller/)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/lironabraham/cyber-incident-storyteller/pkgs/container/ais-storyteller)
+
 An autonomous DFIR tool that turns raw Linux host logs into a readable incident report — no cloud dependency, no LLM, no SIEM required.
 
 Drop in a log file, get back a Markdown report with a timeline, MITRE ATT&CK technique mapping, and a sequence diagram showing exactly what the attacker did and when.
@@ -24,12 +28,18 @@ logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  
 **Requirements:** Python 3.12+
 
 ```bash
-git clone https://github.com/lironabraham/cyber-incident-storyteller
-cd cyber-incident-storyteller
-pip install .
+pip install ais-storyteller
 ```
 
-> **Windows note:** if `ais` is not found after install, either add Python's Scripts folder to PATH (`setx PATH "%PATH%;%LOCALAPPDATA%\Programs\Python\Python312\Scripts"` then restart your terminal), or use `py src/storyteller.py` in place of `ais` throughout.
+> **Windows note:** if `ais` is not found after install, either add Python's Scripts folder to PATH (`setx PATH "%PATH%;%LOCALAPPDATA%\Programs\Python\Python312\Scripts"` then restart your terminal), or use `py -m storyteller` in place of `ais` throughout.
+
+**Install from source (development):**
+
+```bash
+git clone https://github.com/lironabraham/cyber-incident-storyteller
+cd cyber-incident-storyteller
+pip install -e ".[dev]"
+```
 
 **See it work immediately (no log file needed):**
 
@@ -51,11 +61,18 @@ Open `reports/incident.md` in any Markdown viewer that renders Mermaid diagrams 
 **Docker:**
 
 ```bash
-docker build -t ais .
-docker run --rm ais demo
+# Pull the pre-built image from GHCR (no build step needed)
+docker run --rm ghcr.io/lironabraham/ais-storyteller:latest demo
 
 # Mount your own logs:
-docker run --rm -v $(pwd)/logs:/workspace/logs ais analyze logs/auth.log
+docker run --rm -v $(pwd)/logs:/workspace/logs ghcr.io/lironabraham/ais-storyteller:latest analyze /workspace/logs/auth.log
+```
+
+**Build locally:**
+
+```bash
+docker build -t ais .
+docker run --rm ais demo
 ```
 
 ---
@@ -159,7 +176,7 @@ ais verify logs/auth.log
 ## Running tests
 
 ```bash
-py -m pytest tests/          # 284 tests
+py -m pytest tests/          # 294 tests
 py -m pytest tests/ --cov=src
 ```
 

@@ -130,4 +130,20 @@ Exit codes: 0 success · 1 error · 2 integrity verification failure
 
 ---
 
+## Cutting a Release
+
+```bash
+# Bump version in pyproject.toml first, then:
+git add pyproject.toml
+git commit -m "chore: bump version to vX.Y.Z"
+git push
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+The `release.yml` workflow runs automatically: test → PyPI publish → GHCR Docker push → GitHub Release.
+Requires the `pypi` GitHub environment and PyPI trusted publisher to be configured (see `.github/workflows/release.yml`).
+
+---
+
 > **Private:** See local `ROADMAP.md` (gitignored) for the VC product strategy and phase-by-phase feature roadmap.
