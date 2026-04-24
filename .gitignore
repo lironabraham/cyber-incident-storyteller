@@ -17,3 +17,6 @@ data/processed/*
 # OS
 .DS_Store
 Thumbs.db
+
+# Private — not for public repo
+ROADMAP.md
