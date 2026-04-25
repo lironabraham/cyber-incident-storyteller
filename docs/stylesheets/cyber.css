@@ -35,8 +35,9 @@
   --md-primary-fg-color:           var(--cyber-cyan-mid);
   --md-primary-fg-color--light:    var(--cyber-cyan-dark);
   --md-primary-fg-color--dark:     #023e8a;
-  --md-primary-bg-color:           var(--cyber-bg);
-  --md-primary-bg-color--light:    var(--cyber-surface);
+  /* Keep bg-color light so header icons (home, toggle, repo) stay visible */
+  --md-primary-bg-color:           var(--cyber-text);
+  --md-primary-bg-color--light:    var(--cyber-text-muted);
 
   --md-accent-fg-color:            var(--cyber-cyan);
   --md-accent-fg-color--transparent: #00d4ff1a;
@@ -74,6 +75,26 @@
   color: var(--cyber-text);
 }
 
+[data-md-color-scheme="slate"] .md-header__button {
+  color: var(--cyber-text);
+  opacity: 0.85;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+[data-md-color-scheme="slate"] .md-header__button:hover {
+  color: var(--cyber-cyan);
+  opacity: 1;
+}
+
+/* Repo name + stats in header */
+[data-md-color-scheme="slate"] .md-source {
+  color: var(--cyber-text);
+}
+
+[data-md-color-scheme="slate"] .md-source__facts {
+  color: var(--cyber-text-muted);
+}
+
 /* ── Navigation sidebar ──────────────────────────────────────────────── */
 [data-md-color-scheme="slate"] .md-sidebar {
   background: var(--cyber-bg);
@@ -93,12 +114,20 @@
   color: var(--cyber-cyan);
 }
 
-[data-md-color-scheme="slate"] .md-nav__title {
-  color: var(--cyber-text-muted);
+/* Nav title — consistent across both schemes */
+.md-nav__title {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+[data-md-color-scheme="slate"] .md-nav__title {
+  color: var(--cyber-text-muted);
+}
+
+[data-md-color-scheme="default"] .md-nav__title {
+  color: #005f73;
 }
 
 /* ── Headings ────────────────────────────────────────────────────────── */
