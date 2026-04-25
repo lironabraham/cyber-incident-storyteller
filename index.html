@@ -744,7 +744,7 @@
 
 
 <h1 id="cyber-incident-storyteller">Cyber Incident Storyteller</h1>
-<p><strong>Autonomous DFIR — turns raw Linux host logs into MITRE-mapped attack narratives.</strong><br />
+<p><strong>Autonomous DFIR — turns raw Linux and Windows host logs into MITRE-mapped attack narratives.</strong><br />
 No cloud. No LLM. No SIEM required.</p>
 <p><a href="https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml/badge.svg" /></a>
 <a href="https://pypi.org/project/ais-storyteller/"><img alt="PyPI" src="https://img.shields.io/pypi/v/ais-storyteller" /></a>
@@ -755,8 +755,8 @@ No cloud. No LLM. No SIEM required.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
 </code></pre></div>
 <ol>
-<li><strong>Parses</strong> Linux host logs into a normalized event stream</li>
-<li><strong>Hunts</strong> for attacker IPs using a Trigger-Pivot algorithm — finds brute-force sources, then follows everything they touched</li>
+<li><strong>Parses</strong> Linux and Windows host logs into a normalized event stream</li>
+<li><strong>Hunts</strong> for attacker IPs using a 4-pass Trigger-Pivot algorithm — brute-force, NTLM relay, Kerberoasting, and high-value persistence events</li>
 <li><strong>Correlates</strong> events into ranked attack chains with severity scoring</li>
 <li><strong>Reports</strong> a human-readable document with MITRE ATT&amp;CK mappings and a Mermaid.js sequence diagram</li>
 </ol>
@@ -845,6 +845,10 @@ No cloud. No LLM. No SIEM required.</p>
 <td><code>sysmon_linux</code></td>
 <td>Linux Sysmon XML — process creation, network connections</td>
 </tr>
+<tr>
+<td><code>evtx</code></td>
+<td>Windows <code>.evtx</code> / <code>wevtutil</code> XML — logon, process, Kerberos, services, scheduled tasks</td>
+</tr>
 </tbody>
 </table>
 <p>→ <a href="supported-formats/">Full format reference</a></p>
@@ -854,7 +858,7 @@ No cloud. No LLM. No SIEM required.</p>
 <li><strong>Offline-first</strong> — works on air-gapped hosts, no internet connection required</li>
 <li><strong>Forensically defensible</strong> — SHA-256 chain-of-custody, source logs never modified</li>
 <li><strong>Zero dependencies on cloud or AI</strong> — runs on any Python 3.12+ host in under a minute</li>
-<li><strong>MITRE ATT&amp;CK mapped</strong> — 40+ techniques, 53 commands covered out of the box</li>
+<li><strong>MITRE ATT&amp;CK mapped</strong> — 40+ techniques, 53 commands, Linux and Windows coverage out of the box</li>
 </ul>
 
 

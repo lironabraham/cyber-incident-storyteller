@@ -696,7 +696,7 @@
 <tr>
 <td><code>--fmt</code></td>
 <td><code>auth_log</code></td>
-<td>Log format: <code>auth_log</code> | <code>syslog</code> | <code>audit_log</code> | <code>web_access</code> | <code>sysmon_linux</code></td>
+<td>Log format: <code>auth_log</code> | <code>syslog</code> | <code>audit_log</code> | <code>web_access</code> | <code>sysmon_linux</code> | <code>evtx</code></td>
 </tr>
 <tr>
 <td><code>--output</code></td>
@@ -722,13 +722,16 @@
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Web attack investigation</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/nginx/access.log<span class="w"> </span>--fmt<span class="w"> </span>web_access<span class="w"> </span>--output<span class="w"> </span>reports/web_incident.md
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Lower threshold — flag IPs after just 3 failures</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span>--threshold<span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Windows EVTX investigation</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>ais<span class="w"> </span>analyze<span class="w"> </span>security.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx<span class="w"> </span>--output<span class="w"> </span>reports/windows_incident.md
 <a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Custom output directories</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span>--output<span class="w"> </span>/tmp/reports/incident.md<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span>--processed-dir<span class="w"> </span>/tmp/processed
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># Lower threshold — flag IPs after just 3 failures</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span>--threshold<span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Custom output directories</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span>--output<span class="w"> </span>/tmp/reports/incident.md<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span>--processed-dir<span class="w"> </span>/tmp/processed
 </code></pre></div>
 <hr />
 <h2 id="ais-verify"><code>ais verify</code></h2>

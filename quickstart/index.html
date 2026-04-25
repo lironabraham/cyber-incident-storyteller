@@ -749,7 +749,7 @@ Then restart your terminal. Or use <code>py -m storyteller</code> in place of <c
 </ul>
 <hr />
 <h2 id="analyze-your-own-log">Analyze your own log</h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:5"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">auth.log (SSH)</label><label for="__tabbed_1_2">syslog</label><label for="__tabbed_1_3">audit.log</label><label for="__tabbed_1_4">nginx access.log</label><label for="__tabbed_1_5">Linux Sysmon</label></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:6"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">auth.log (SSH)</label><label for="__tabbed_1_2">syslog</label><label for="__tabbed_1_3">audit.log</label><label for="__tabbed_1_4">nginx access.log</label><label for="__tabbed_1_5">Linux Sysmon</label><label for="__tabbed_1_6">Windows EVTX</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span>--fmt<span class="w"> </span>auth_log<span class="w"> </span>--output<span class="w"> </span>incident.md
@@ -771,13 +771,22 @@ Then restart your terminal. Or use <code>py -m storyteller</code> in place of <c
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/sysmon.xml<span class="w"> </span>--fmt<span class="w"> </span>sysmon_linux<span class="w"> </span>--output<span class="w"> </span>incident.md
 </code></pre></div>
 </div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Binary .evtx (requires: pip install python-evtx)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>ais<span class="w"> </span>analyze<span class="w"> </span><span class="s2">&quot;C:\Windows\System32\winevt\Logs\Security.evtx&quot;</span><span class="w"> </span>--fmt<span class="w"> </span>evtx<span class="w"> </span>--output<span class="w"> </span>incident.md
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># wevtutil XML export (no extra dependency)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>wevtutil<span class="w"> </span>qe<span class="w"> </span>Security<span class="w"> </span>/f:XML<span class="w"> </span>&gt;<span class="w"> </span>security.xml
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>ais<span class="w"> </span>analyze<span class="w"> </span>security.xml<span class="w"> </span>--fmt<span class="w"> </span>evtx<span class="w"> </span>--output<span class="w"> </span>incident.md
+</code></pre></div>
+</div>
 </div>
 </div>
 <p>Open <code>incident.md</code> in any Markdown viewer that renders Mermaid diagrams — GitHub, VS Code (with Mermaid plugin), or Obsidian.</p>
 <hr />
 <h2 id="verify-forensic-integrity">Verify forensic integrity</h2>
 <p>After ingestion, verify a log hasn't been tampered with:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ais<span class="w"> </span>verify<span class="w"> </span>/var/log/auth.log
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ais<span class="w"> </span>verify<span class="w"> </span>/var/log/auth.log
 </code></pre></div>
 <table>
 <thead>
@@ -803,15 +812,15 @@ Then restart your terminal. Or use <code>py -m storyteller</code> in place of <c
 </table>
 <hr />
 <h2 id="docker">Docker</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Demo — no log file needed</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>ghcr.io/lironabraham/ais-storyteller:latest<span class="w"> </span>demo
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Analyze logs from the host</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span>-v<span class="w"> </span>/var/log:/logs:ro<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/reports:/workspace/reports<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">  </span>ghcr.io/lironabraham/ais-storyteller:latest<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span>analyze<span class="w"> </span>/logs/auth.log<span class="w"> </span>--fmt<span class="w"> </span>auth_log<span class="w"> </span>--output<span class="w"> </span>/workspace/reports/incident.md
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Demo — no log file needed</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>ghcr.io/lironabraham/ais-storyteller:latest<span class="w"> </span>demo
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Analyze logs from the host</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span>-v<span class="w"> </span>/var/log:/logs:ro<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/reports:/workspace/reports<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span>ghcr.io/lironabraham/ais-storyteller:latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span>analyze<span class="w"> </span>/logs/auth.log<span class="w"> </span>--fmt<span class="w"> </span>auth_log<span class="w"> </span>--output<span class="w"> </span>/workspace/reports/incident.md
 </code></pre></div>
 <hr />
 <h2 id="next-steps">Next steps</h2>
