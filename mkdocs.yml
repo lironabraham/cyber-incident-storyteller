@@ -1,0 +1,64 @@
+site_name: Cyber Incident Storyteller
+site_description: Autonomous DFIR — turns raw Linux host logs into MITRE-mapped attack narratives. No cloud, no LLM, no SIEM required.
+site_url: https://lironabraham.github.io/cyber-incident-storyteller
+repo_url: https://github.com/lironabraham/cyber-incident-storyteller
+repo_name: lironabraham/cyber-incident-storyteller
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - CLI Reference: cli-reference.md
+  - Supported Formats: supported-formats.md
+  - Sample Report: sample-report.md
+  - Forensic Integrity: forensic-integrity.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.inlinehilite
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/lironabraham/cyber-incident-storyteller
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ais-storyteller/
