@@ -35,6 +35,7 @@ nav:
   - Supported Formats: supported-formats.md
   - Sample Report: sample-report.md
   - Forensic Integrity: forensic-integrity.md
+  - Benchmarks: benchmarks.md
 
 plugins:
   - search
