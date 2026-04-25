@@ -135,7 +135,7 @@ def _primary_user(events: list[StandardEvent]) -> str | None:
         u = e.source_actor.get('user')
         if u:
             counts[u] += 1
-    return max(counts, key=counts.get) if counts else None
+    return max(counts, key=lambda u: counts[u]) if counts else None
 
 
 def _unique_techniques(events: list[StandardEvent]) -> list[MitreTechniqueRef]:
@@ -246,8 +246,9 @@ def pivot_on_actor(
     extra_events: list[StandardEvent] = []
     if compromised_users and earliest_compromise:
         cutoff = earliest_compromise + timedelta(hours=window_hours)
+        ip_event_ids = {e.event_id for e in ip_events}
         for e in events:
-            if e in ip_events:
+            if e.event_id in ip_event_ids:
                 continue
             u = e.source_actor.get('user')
             if u in compromised_users and earliest_compromise <= e.timestamp <= cutoff:

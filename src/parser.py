@@ -1,7 +1,10 @@
+import logging
 import re
 import pandas as pd
 from pathlib import Path
 from dateutil import parser as dateparser
+
+_log = logging.getLogger(__name__)
 
 # ── Auth.log line structure ────────────────────────────────────────────────────
 # Example: Apr 23 10:15:32 server1 sshd[1234]: Failed password for root from 1.2.3.4 port 22 ssh2
@@ -489,8 +492,8 @@ def _evtx_classify(
         return 'Windows Logon Failure', user, ip, None
 
     if event_id == '4648':
-        target = data.get('TargetServerName') or ip
-        return 'Windows Explicit Credential Use', user, target, None
+        target_server = data.get('TargetServerName')
+        return 'Windows Explicit Credential Use', user, ip, target_server
 
     if event_id == '4672':
         u = data.get('SubjectUserName') or user
@@ -561,7 +564,7 @@ def _parse_evtx_record(xml_str: str) -> dict | None:
         ts_str = ts_str[:26] + 'Z' if len(ts_str) > 26 else ts_str
         timestamp = _dt.datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
     except ValueError:
-        timestamp = None
+        timestamp = pd.NaT
 
     hostname = root.findtext('System/Computer') or ''
     data = _evtx_extract_event_data(root)
@@ -607,7 +610,8 @@ def _parse_evtx_binary(path: Path) -> pd.DataFrame:
                 row = _parse_evtx_record(record.xml())
                 if row:
                     rows.append(row)
-            except Exception:
+            except Exception as exc:
+                _log.warning("Skipped malformed EVTX record: %s", exc)
                 continue
     return _build_evtx_dataframe(rows)
 
@@ -686,7 +690,7 @@ def parse_log(path: str | Path, fmt: str = 'auth_log') -> pd.DataFrame:
     path : str or Path
         Path to the log file.
     fmt  : str
-        Log format key. Currently supported: 'auth_log'.
+        Log format key. See SUPPORTED_FORMATS for valid values.
 
     Returns
     -------

@@ -111,8 +111,6 @@ def _compute_severity(
         return 'medium'
 
     # ── Windows EVTX ──────────────────────────────────────────────────────────
-    if event_type in _SUCCESS_TYPES and event_type.startswith('Windows'):
-        return 'critical' if failures >= 5 else 'info'
     if event_type == 'Windows Logon Failure':
         if failures >= 20:
             return 'high'
@@ -183,9 +181,9 @@ def _action_taken(event_type: str, user: str | None, ip: str | None, raw: str) -
     if event_type == 'Audit Auth Failure':
         return f"Authentication failure recorded by auditd for '{u}'"
     if event_type == 'Shell Execution':
-        return f"Interactive shell spawned"
+        return f"Interactive shell spawned by '{u}'"
     if event_type == 'File Access':
-        return f"Sensitive file accessed by process"
+        return f"Sensitive file accessed by '{u}'"
     # ── web access ────────────────────────────────────────────────────────────
     if event_type == 'Web Shell':
         return f"Possible web shell access from {s}"
