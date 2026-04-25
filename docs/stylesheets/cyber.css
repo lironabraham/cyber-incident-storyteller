@@ -1,0 +1,301 @@
+/* ── Cyber Incident Storyteller — theme overlay ─────────────────────────
+   Direction: Terminal-Cyber Industrial
+   Base: GitHub dark slate  |  Accent: electric cyan  |  Body: Inter
+   ───────────────────────────────────────────────────────────────────── */
+
+/* ── Token system ──────────────────────────────────────────────────── */
+:root {
+  --cyber-bg:           #0d1117;
+  --cyber-surface:      #161b22;
+  --cyber-surface-2:    #21262d;
+  --cyber-border:       #30363d;
+  --cyber-cyan:         #00d4ff;
+  --cyber-cyan-mid:     #00b4d8;
+  --cyber-cyan-dark:    #0077b6;
+  --cyber-text:         #e6edf3;
+  --cyber-text-muted:   #8b949e;
+  --cyber-text-dim:     #484f58;
+  --cyber-green:        #3fb950;
+  --cyber-red:          #f85149;
+  --cyber-amber:        #d29922;
+}
+
+/* ── Dark scheme (slate) ─────────────────────────────────────────── */
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color:           var(--cyber-bg);
+  --md-default-bg-color--light:    var(--cyber-surface);
+  --md-default-bg-color--lighter:  var(--cyber-surface-2);
+  --md-default-bg-color--lightest: var(--cyber-border);
+
+  --md-default-fg-color:           var(--cyber-text);
+  --md-default-fg-color--light:    var(--cyber-text-muted);
+  --md-default-fg-color--lighter:  var(--cyber-text-dim);
+  --md-default-fg-color--lightest: var(--cyber-border);
+
+  --md-primary-fg-color:           var(--cyber-cyan-mid);
+  --md-primary-fg-color--light:    var(--cyber-cyan-dark);
+  --md-primary-fg-color--dark:     #023e8a;
+  --md-primary-bg-color:           var(--cyber-bg);
+  --md-primary-bg-color--light:    var(--cyber-surface);
+
+  --md-accent-fg-color:            var(--cyber-cyan);
+  --md-accent-fg-color--transparent: #00d4ff1a;
+  --md-accent-bg-color:            var(--cyber-bg);
+
+  --md-code-bg-color:              var(--cyber-surface);
+  --md-code-fg-color:              var(--cyber-text);
+  --md-code-hl-color:              #00d4ff22;
+
+  --md-typeset-a-color:            var(--cyber-cyan-mid);
+  --md-typeset-table-color:        var(--cyber-border);
+  --md-typeset-table-color--light: var(--cyber-surface-2);
+}
+
+/* ── Light scheme — cool teal, stays readable ─────────────────────── */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #005f73;
+  --md-primary-fg-color--light: #0a9396;
+  --md-primary-fg-color--dark:  #001219;
+  --md-accent-fg-color:         #0a9396;
+  --md-typeset-a-color:         #0077b6;
+  --md-code-bg-color:           #f0f4f8;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-header {
+  background: var(--cyber-bg);
+  border-bottom: 1px solid var(--cyber-surface-2);
+  box-shadow: none;
+}
+
+[data-md-color-scheme="slate"] .md-header__title {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--cyber-text);
+}
+
+/* ── Navigation sidebar ──────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-sidebar {
+  background: var(--cyber-bg);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar__scrollwrap {
+  border-right: 1px solid var(--cyber-surface-2);
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--active > .md-nav__link,
+[data-md-color-scheme="slate"] .md-nav__link--active {
+  color: var(--cyber-cyan);
+  font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link:hover {
+  color: var(--cyber-cyan);
+}
+
+[data-md-color-scheme="slate"] .md-nav__title {
+  color: var(--cyber-text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Headings ────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset h1 {
+  color: var(--cyber-text);
+  font-weight: 800;
+  border-bottom: 2px solid var(--cyber-cyan-mid);
+  padding-bottom: 0.35em;
+  letter-spacing: -0.01em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  color: #c9d1d9;
+  border-bottom: 1px solid var(--cyber-surface-2);
+  padding-bottom: 0.2em;
+  font-weight: 700;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  color: var(--cyber-cyan-mid);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset pre > code,
+[data-md-color-scheme="slate"] .highlight pre {
+  background: var(--cyber-bg) !important;
+  border: 1px solid var(--cyber-surface-2);
+  border-left: 3px solid var(--cyber-cyan-mid);
+  border-radius: 4px;
+}
+
+/* Inline code */
+[data-md-color-scheme="slate"] .md-typeset code:not(.highlight code):not(pre code) {
+  background: var(--cyber-surface-2);
+  color: var(--cyber-cyan);
+  border: 1px solid var(--cyber-border);
+  border-radius: 3px;
+  padding: 0.1em 0.4em;
+  font-size: 0.87em;
+}
+
+/* Copy button */
+[data-md-color-scheme="slate"] .md-clipboard:hover {
+  color: var(--cyber-cyan);
+}
+
+/* ── Tables ─────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  border: 1px solid var(--cyber-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background: var(--cyber-surface);
+  color: var(--cyber-cyan-mid);
+  border-bottom: 2px solid var(--cyber-cyan-mid);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) td {
+  border-top: 1px solid var(--cyber-surface-2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) tr:nth-child(2n) td {
+  background: var(--cyber-surface);
+}
+
+/* ── Admonitions ────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset .admonition,
+[data-md-color-scheme="slate"] .md-typeset details {
+  background: var(--cyber-surface);
+  border-color: var(--cyber-cyan-mid);
+  border-radius: 4px;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset summary {
+  background: #00b4d81a;
+  color: var(--cyber-cyan);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition.warning,
+[data-md-color-scheme="slate"] .md-typeset details.warning {
+  border-color: var(--cyber-amber);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition.warning .admonition-title {
+  background: #d2992222;
+  color: var(--cyber-amber);
+}
+
+/* ── Search ──────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-search__input {
+  background: var(--cyber-surface-2);
+  border: 1px solid var(--cyber-border);
+  color: var(--cyber-text);
+  border-radius: 4px;
+}
+
+[data-md-color-scheme="slate"] .md-search__input:focus {
+  border-color: var(--cyber-cyan-mid);
+  box-shadow: 0 0 0 2px #00b4d822;
+}
+
+[data-md-color-scheme="slate"] .md-search__input::placeholder {
+  color: var(--cyber-text-muted);
+}
+
+[data-md-color-scheme="slate"] .md-search-result__article {
+  background: var(--cyber-surface);
+  border-bottom: 1px solid var(--cyber-surface-2);
+}
+
+[data-md-color-scheme="slate"] .md-search-result mark {
+  color: var(--cyber-cyan);
+  background: transparent;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-footer {
+  background: var(--cyber-bg);
+  border-top: 1px solid var(--cyber-surface-2);
+}
+
+[data-md-color-scheme="slate"] .md-footer-meta {
+  background: var(--cyber-bg);
+}
+
+/* ── Content area ────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-content {
+  background: var(--cyber-bg);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a {
+  color: var(--cyber-cyan-mid);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: var(--cyber-cyan);
+  border-bottom-color: var(--cyber-cyan-mid);
+}
+
+[data-md-color-scheme="slate"] .md-typeset hr {
+  border-color: var(--cyber-surface-2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset blockquote {
+  border-left: 4px solid var(--cyber-cyan-mid);
+  background: var(--cyber-surface);
+  padding: 0.5em 1em;
+  border-radius: 0 4px 4px 0;
+  color: var(--cyber-text-muted);
+}
+
+/* ── Tabs (pymdownx.tabbed) ──────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .md-typeset .tabbed-labels > label {
+  color: var(--cyber-text-muted);
+  border-bottom: 2px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .tabbed-labels > label:hover {
+  color: var(--cyber-cyan-mid);
+}
+
+/* ── Scrollbar (Webkit) ──────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-track {
+  background: var(--cyber-bg);
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb {
+  background: var(--cyber-border);
+  border-radius: 3px;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--cyber-cyan-dark);
+}
