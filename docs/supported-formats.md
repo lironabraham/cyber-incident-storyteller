@@ -105,6 +105,46 @@ ais analyze /var/log/sysmon.xml --fmt sysmon_linux
 
 ---
 
+## `evtx` — Windows Event Log
+
+Windows Security and System Event Log in either binary `.evtx` format or `wevtutil` XML export.
+
+**Requires `python-evtx` for binary `.evtx` files:**
+
+```bash
+pip install python-evtx
+```
+
+XML exports from `wevtutil qe` work without the extra dependency.
+
+**Covered EventIDs:**
+
+| EventID | Channel | Detects |
+|---|---|---|
+| 4624 | Security | Logon success (interactive, remote, batch) |
+| 4625 | Security | Logon failure — password brute force |
+| 4648 | Security | Explicit credential use — pass-the-hash indicator |
+| 4672 | Security | Special privileges assigned |
+| 4688 | Security | Process creation — mapped to MITRE per command |
+| 4697 / 7045 | Security / System | Service installed — lateral movement / persistence |
+| 4698 / 4699 / 4702 | Security | Scheduled task created / deleted / modified |
+| 4720 | Security | Local account created |
+| 4728 / 4732 | Security | Member added to global / local group |
+| 4768 / 4769 | Security | Kerberos TGT / service ticket request |
+| 4771 | Security | Kerberos pre-authentication failure — spray indicator |
+| 5145 | Security | Network share access |
+
+```bash
+# Binary .evtx (requires python-evtx)
+ais analyze logs/security.evtx --fmt evtx
+
+# wevtutil XML export (no extra dependency)
+wevtutil qe Security /f:XML > security.xml
+ais analyze security.xml --fmt evtx
+```
+
+---
+
 ## Combining formats
 
-Run `ais analyze` once per log file, then correlate across the generated reports. Multi-source correlation into a single campaign view is on the [Phase 3 roadmap](https://github.com/lironabraham/cyber-incident-storyteller).
+Run `ais analyze` once per log file, then correlate across the generated reports. Multi-source correlation into a single campaign view is on the [Phase 4 roadmap](roadmap.md).

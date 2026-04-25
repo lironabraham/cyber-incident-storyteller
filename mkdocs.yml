@@ -38,9 +38,11 @@ nav:
   - Quickstart: quickstart.md
   - CLI Reference: cli-reference.md
   - Supported Formats: supported-formats.md
+  - Detection Coverage: detection-coverage.md
   - Sample Report: sample-report.md
   - Forensic Integrity: forensic-integrity.md
   - Benchmarks: benchmarks.md
+  - Roadmap: roadmap.md
 
 extra_css:
   - stylesheets/cyber.css

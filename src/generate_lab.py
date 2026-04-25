@@ -336,6 +336,115 @@ def generate_sysmon_linux_lab(
     return output_path
 
 
+def generate_evtx_attack_log(
+    output_path: Path | None = None,
+    attacker_ip: str = '192.168.99.1',
+    victim_user: str = 'Administrator',
+    target_host: str = 'WINSERVER01',
+) -> Path:
+    """Write a synthetic Windows Event XML attack log and return its path.
+
+    Attack stages:
+      1. Brute Force     — 10× EventID 4625 (logon failures, type 3)
+      2. Initial Access  — EventID 4624 (type 3 network logon)
+      3. Privilege       — EventID 4672 (special privileges assigned)
+      4. Execution       — EventID 4688 (powershell.exe with encoded command)
+      5. Persistence svc — EventID 4697 (service installed)
+      6. Persistence task— EventID 4698 (scheduled task created)
+
+    Output is wevtutil-compatible XML accepted by --fmt evtx.
+    """
+    if output_path is None:
+        output_path = Path(__file__).parent.parent / 'logs' / 'lab_windows_attack.xml'
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    base = datetime(2024, 4, 23, 10, 0, 0)
+    seq = 10000
+
+    def wts(dt: datetime) -> str:
+        return dt.strftime('%Y-%m-%dT%H:%M:%S.000000000Z')
+
+    def event(dt: datetime, eid: str, data_fields: dict[str, str]) -> str:
+        nonlocal seq
+        seq += 1
+        data_xml = ''.join(
+            f'<Data Name="{k}">{v}</Data>' for k, v in data_fields.items()
+        )
+        return (
+            f'<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">'
+            f'<System>'
+            f'<Provider Name="Microsoft-Windows-Security-Auditing"/>'
+            f'<EventID>{eid}</EventID>'
+            f'<TimeCreated SystemTime="{wts(dt)}"/>'
+            f'<EventRecordID>{seq}</EventRecordID>'
+            f'<Computer>{target_host}</Computer>'
+            f'</System>'
+            f'<EventData>{data_xml}</EventData>'
+            f'</Event>'
+        )
+
+    t = base
+    evts = []
+
+    # Stage 1: Brute force — 10 logon failures
+    for _ in range(10):
+        t += timedelta(seconds=30)
+        evts.append(event(t, '4625', {
+            'TargetUserName': victim_user,
+            'IpAddress':      attacker_ip,
+            'LogonType':      '3',
+            'Status':         '0xc000006d',
+            'SubStatus':      '0xc0000064',
+        }))
+
+    # Stage 2: Successful network logon
+    t += timedelta(seconds=15)
+    evts.append(event(t, '4624', {
+        'TargetUserName': victim_user,
+        'IpAddress':      attacker_ip,
+        'LogonType':      '3',
+    }))
+
+    # Stage 3: Special privileges assigned (admin token)
+    t += timedelta(seconds=2)
+    evts.append(event(t, '4672', {
+        'SubjectUserName':  victim_user,
+        'SubjectDomainName': target_host,
+        'PrivilegeList':    'SeDebugPrivilege\r\nSeImpersonatePrivilege',
+    }))
+
+    # Stage 4: PowerShell process creation with encoded command
+    t += timedelta(seconds=10)
+    evts.append(event(t, '4688', {
+        'SubjectUserName': victim_user,
+        'NewProcessName':  r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
+        'CommandLine':     'powershell.exe -NoP -NonI -W Hidden -Enc SQBFAFgA',
+    }))
+
+    # Stage 5: New service installed (persistence)
+    t += timedelta(seconds=20)
+    evts.append(event(t, '4697', {
+        'SubjectUserName':  victim_user,
+        'ServiceName':      'SvcMonitor',
+        'ServiceFileName':  r'C:\Windows\Temp\svcmon.exe',
+        'ServiceType':      '0x10',
+        'ServiceStartType': '2',
+    }))
+
+    # Stage 6: Scheduled task created
+    t += timedelta(seconds=15)
+    evts.append(event(t, '4698', {
+        'SubjectUserName': victim_user,
+        'TaskName':        r'\Microsoft\Windows\SvcMonitor\beacon',
+        'TaskContent':     '<Task/>',
+    }))
+
+    xml = '<Events>\n' + '\n'.join(evts) + '\n</Events>\n'
+    output_path.write_text(xml, encoding='utf-8')
+    return output_path
+
+
 def generate_realistic_incident(
     output_dir: Path | None = None,
     attacker_ip: str = '203.0.113.42',

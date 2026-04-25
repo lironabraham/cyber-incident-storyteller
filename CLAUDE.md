@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-Autonomous DFIR tool that ingests Linux host logs, correlates events into attack chains,
-maps each stage to MITRE ATT&CK techniques, and produces a human-readable incident report
-with a Mermaid.js sequence diagram — no cloud dependency, no LLM required.
+Autonomous DFIR tool that ingests Linux host logs and Windows Event Logs, correlates events
+into attack chains, maps each stage to MITRE ATT&CK techniques, and produces a human-readable
+incident report with a Mermaid.js sequence diagram — no cloud dependency, no LLM required.
 
 Designed as a distribution play: a single tool that tells the complete story of a host
 compromise, from initial brute-force through web shell or persistence, using only the log
-files already present on any Linux system.
+files already present on any Linux or Windows system.
 
 ---
 
@@ -32,14 +32,14 @@ All source modules live in `src/`. Each has a single responsibility:
 
 | Module | Role |
 |---|---|
-| `parser.py` | Regex-based log parsers → unified `pd.DataFrame` |
+| `parser.py` | Regex-based log parsers + EVTX binary/XML parser → unified `pd.DataFrame`; auto-detects `.evtx` magic bytes |
 | `schema.py` | `StandardEvent` dataclass + `SourceActor` / `TargetSystem` / `MitreTechnique` TypedDicts + `make_event_id()` / `to_json()` |
 | `ingest.py` | Wraps parser, computes context-aware severity, writes SHA-256 hash, serializes to `data/processed/` |
 | `mitre.py` | MITRE ATT&CK technique lookup by event type or command name |
-| `hunter.py` | Trigger-Pivot engine — finds brute-force IPs, pivots to full attack chains; `MitreTechniqueRef` TypedDict |
+| `hunter.py` | Trigger-Pivot engine — 4 detection pathways (brute-force, silent-access/NTLM-relay, probe/Kerberoasting, high-value sweep); chain types: `brute_force`, `credential_stuffing`, `post_exploitation`, `unauthorized_access`, `lateral_movement`; `MitreTechniqueRef` TypedDict |
 | `reporter.py` | Markdown + Mermaid.js report generator |
 | `storyteller.py` | CLI entrypoint — `analyze`, `verify`, and `demo` subcommands |
-| `generate_lab.py` | Synthetic log generators for pipeline validation and testing |
+| `generate_lab.py` | Synthetic log generators for pipeline validation and testing; includes `generate_evtx_attack_log()` for Windows EVTX fixtures |
 
 ---
 
@@ -54,6 +54,7 @@ Pass the `fmt` key to `parse_log()` or `ingest()`:
 | `audit_log` | `/var/log/audit/audit.log` | process execution, shell spawn, file access |
 | `web_access` | `/var/log/nginx/access.log` | HTTP requests, attacks, scanning, web shells |
 | `sysmon_linux` | Linux Sysmon XML (one `<Event>` per line) | process create/terminate, network connections, file create/delete |
+| `evtx` | Windows `.evtx` binary or `wevtutil` XML export | logon/logoff (4624/4625), process creation (4688), scheduled tasks (4698/4699/4702), services (7045), Kerberos (4768/4769/4771), group changes (4728/4732), share access (5145) |
 
 ---
 
@@ -85,6 +86,9 @@ The original log file is **never modified**. `ingest()` writes only to `data/pro
 - **MITRE command lookup** (`map_command()`) covers 53 commands across 7 tactic categories — add new entries to `SUSPICIOUS_COMMANDS` in `mitre.py`, not inline in parsers
 - **Sysmon EventID 5** (Process Terminated) is always skipped — pure noise with no forensic value
 - **TypedDicts** (`SourceActor`, `TargetSystem`, `MitreTechnique`) must be used for all dict-typed fields on `StandardEvent` — never bare `dict` for new schema fields; key typos are caught by mypy at type-check time
+- **Windows EventID 4689** (Process Terminated) is always skipped — same rationale as Sysmon EventID 5; pure noise
+- **EVTX Windows path stripping** — `process` field strips the full path (e.g., `C:\Windows\System32\lsass.exe` → `lsass.exe`) and lowercases for consistent matching across 4624/4688 records
+- **hunter.py Pass 4** collects high-value events (`_HIGH_VALUE_TYPES`) with no IP attribution and groups them by `user` into lateral-movement chains; the `actor_ip` field on `AttackChain` is `str | None` to support anonymous chains
 
 ---
 
@@ -103,11 +107,18 @@ py src/storyteller.py analyze logs/auth.log --fmt auth_log --output reports/inci
 # Run on a Linux Sysmon XML log
 py src/storyteller.py analyze logs/sysmon.log --fmt sysmon_linux --output reports/incident.md
 
+# Run on a Windows Security Event Log
+py src/storyteller.py analyze logs/security.evtx --fmt evtx --output reports/incident.md
+
 # Verify forensic integrity of an ingested log
 py src/storyteller.py verify logs/auth.log
 
-# Run the full test suite (284 tests)
+# Download real EVTX attack samples (run once before evtx integration tests)
+py tests/download_evtx_fixtures.py
+
+# Run the full test suite
 py -m pytest tests/
+py -m pytest tests/ --collect-only -q | tail -1  # check current count
 
 # Run with coverage
 py -m pytest tests/ --cov=src
@@ -117,7 +128,7 @@ py -m pytest tests/ --cov=src
 
 ```
 py src/storyteller.py analyze <log_path>
-    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux  (default: auth_log)
+    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux|evtx  (default: auth_log)
     --output        path to write the Markdown report                   (default: reports/incident.md)
     --processed-dir directory for SHA-256 hashes and event cache        (default: data/processed)
     --threshold     min failed logins to flag an IP as attacker         (default: 5)
@@ -146,4 +157,4 @@ Requires the `pypi` GitHub environment and PyPI trusted publisher to be configur
 
 ---
 
-> **Private:** See local `ROADMAP.md` (gitignored) for the VC product strategy and phase-by-phase feature roadmap.
+> **Public roadmap:** See `docs/roadmap.md` for the feature roadmap (Phases 4–10). The private `ROADMAP.md` (gitignored) contains VC product strategy.

@@ -435,6 +435,236 @@ def _parse_sysmon_linux(path: Path) -> pd.DataFrame:
     return df.sort_values('timestamp').reset_index(drop=True)
 
 
+# ── Windows EVTX / XML parser ─────────────────────────────────────────────────
+# Accepts binary EVTX (magic: ElfFile\x00) or wevtutil XML export format.
+# Both paths share the same per-record XML parsing logic.
+
+_EVTX_NS_RE = re.compile(r'\s+xmlns(?::\w+)?=["\'][^"\']*["\']')
+_EVTX_SKIP_IDS = {'4689'}  # Process Terminated — noise (mirrors Sysmon EID 5)
+_EVTX_ATTACKER_IP_FIELDS = ('IpAddress', 'WorkstationName')
+_EVTX_NULL_VALUES = frozenset({'-', '', '::1', '127.0.0.1', 'localhost'})
+
+
+def _strip_evtx_ns(xml_str: str) -> str:
+    """Remove XML namespace declarations so plain XPath queries work."""
+    return _EVTX_NS_RE.sub('', xml_str)
+
+
+def _evtx_extract_event_data(root) -> dict[str, str]:
+    """Flatten <EventData><Data Name="..."> entries into a plain dict."""
+    return {
+        d.get('Name', ''): (d.text or '')
+        for d in root.findall('EventData/Data')
+        if d.get('Name')
+    }
+
+
+def _evtx_classify(
+    event_id: str,
+    data: dict[str, str],
+) -> tuple[str, str | None, str | None, str | None]:
+    """Return (event_type, user, source_ip, command) for a Windows event record.
+
+    command is populated only for EventID 4688; stored in user field by the
+    caller for map_command() routing — consistent with the auditd EXECVE pattern.
+    """
+    ip: str | None = None
+    for field in _EVTX_ATTACKER_IP_FIELDS:
+        candidate = data.get(field, '')
+        if candidate and candidate not in _EVTX_NULL_VALUES:
+            ip = candidate
+            break
+
+    user = data.get('TargetUserName') or data.get('SubjectUserName') or None
+    if user in _EVTX_NULL_VALUES:
+        user = None
+
+    if event_id == '4624':
+        lt = data.get('LogonType', '0')
+        if lt in ('3', '10'):
+            return 'Windows Remote Logon', user, ip, None
+        return 'Windows Logon Success', user, ip, None
+
+    if event_id == '4625':
+        return 'Windows Logon Failure', user, ip, None
+
+    if event_id == '4648':
+        target = data.get('TargetServerName') or ip
+        return 'Windows Explicit Credential Use', user, target, None
+
+    if event_id == '4672':
+        u = data.get('SubjectUserName') or user
+        if u in _EVTX_NULL_VALUES:
+            u = None
+        return 'Windows Privilege Assigned', u, None, None
+
+    if event_id == '4688':
+        proc = data.get('NewProcessName', '') or ''
+        cmd = data.get('CommandLine', '') or proc
+        u = data.get('SubjectUserName') or user
+        if u in _EVTX_NULL_VALUES:
+            u = None
+        return 'Windows Process Creation', u, None, cmd or None
+
+    if event_id in ('4697', '7045'):
+        u = data.get('SubjectUserName') or user
+        return 'Windows Service Installed', u, None, None
+
+    if event_id in ('4698', '4702'):
+        u = data.get('SubjectUserName') or user
+        return 'Windows Scheduled Task', u, None, None
+
+    if event_id == '4720':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Account Created', u, None, None
+
+    if event_id in ('4728', '4732'):
+        u = data.get('SubjectUserName') or user
+        return 'Windows Group Member Added', u, None, None
+
+    if event_id == '4768':
+        u = data.get('CNameString') or user
+        return 'Windows Kerberos TGT Request', u, ip, None
+
+    if event_id == '4769':
+        u = data.get('AccountName') or user
+        return 'Windows Kerberos Service Ticket', u, ip, None
+
+    if event_id == '4771':
+        u = data.get('CNameString') or user
+        return 'Windows Kerberos PreAuth Failure', u, ip, None
+
+    if event_id == '5145':
+        return 'Windows Share Access', user, ip, None
+
+    return 'Other', user, ip, None
+
+
+def _parse_evtx_record(xml_str: str) -> dict | None:
+    """Parse one Windows Event XML string into a row dict, or None to skip."""
+    import datetime as _dt
+    import xml.etree.ElementTree as ET
+
+    clean = _strip_evtx_ns(xml_str)
+    try:
+        root = ET.fromstring(clean)
+    except ET.ParseError:
+        return None
+
+    event_id = root.findtext('System/EventID') or ''
+    if event_id in _EVTX_SKIP_IDS:
+        return None
+
+    tc = root.find('System/TimeCreated')
+    ts_str = tc.get('SystemTime', '') if tc is not None else ''
+    try:
+        ts_str = ts_str[:26] + 'Z' if len(ts_str) > 26 else ts_str
+        timestamp = _dt.datetime.fromisoformat(ts_str.replace('Z', '+00:00'))
+    except ValueError:
+        timestamp = None
+
+    hostname = root.findtext('System/Computer') or ''
+    data = _evtx_extract_event_data(root)
+    event_type, user, source_ip, command = _evtx_classify(event_id, data)
+
+    if event_type == 'Other':
+        return None
+
+    # Store command in user field for map_command() routing (auditd EXECVE pattern)
+    user_field = command if command else user
+
+    return {
+        'timestamp':  timestamp,
+        'hostname':   hostname,
+        'process':    f'EventID-{event_id}',
+        'event_type': event_type,
+        'source_ip':  source_ip,
+        'user':       user_field,
+        'raw':        xml_str,
+    }
+
+
+def _build_evtx_dataframe(rows: list[dict]) -> pd.DataFrame:
+    df = pd.DataFrame(rows, columns=['timestamp', 'hostname', 'process',
+                                     'event_type', 'source_ip', 'user', 'raw'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+    return df.sort_values('timestamp').reset_index(drop=True)
+
+
+def _parse_evtx_binary(path: Path) -> pd.DataFrame:
+    """Parse a binary .evtx file using python-evtx."""
+    try:
+        from Evtx.Evtx import Evtx
+    except ImportError as exc:
+        raise ImportError(
+            "Binary EVTX support requires python-evtx: pip install python-evtx"
+        ) from exc
+
+    rows = []
+    with Evtx(str(path)) as log:
+        for record in log.records():
+            try:
+                row = _parse_evtx_record(record.xml())
+                if row:
+                    rows.append(row)
+            except Exception:
+                continue
+    return _build_evtx_dataframe(rows)
+
+
+def _parse_evtx_xml(path: Path) -> pd.DataFrame:
+    """Parse a wevtutil XML export or one-<Event>-per-line text file."""
+    import xml.etree.ElementTree as ET
+
+    content = path.read_text(encoding='utf-8', errors='replace')
+    rows: list[dict] = []
+
+    # Try as a full XML document first (<Events>...</Events> or bare <Event>)
+    try:
+        root = ET.fromstring(_strip_evtx_ns(content))
+        tag = root.tag.split('}')[-1] if '}' in root.tag else root.tag
+        if tag == 'Events':
+            event_elements = root.findall('Event')
+        elif tag == 'Event':
+            event_elements = [root]
+        else:
+            event_elements = []
+
+        if event_elements:
+            for elem in event_elements:
+                xml_str = ET.tostring(elem, encoding='unicode')
+                row = _parse_evtx_record(xml_str)
+                if row:
+                    rows.append(row)
+            return _build_evtx_dataframe(rows)
+    except ET.ParseError:
+        pass
+
+    # Fall back: one <Event ...> per line (matches generate_lab output format)
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith('<Event'):
+            continue
+        row = _parse_evtx_record(stripped)
+        if row:
+            rows.append(row)
+
+    return _build_evtx_dataframe(rows)
+
+
+def _parse_evtx(path: Path) -> pd.DataFrame:
+    """Parse Windows event logs — binary EVTX or wevtutil XML export.
+
+    Format auto-detected from file magic bytes (ElfFile\\x00 = binary EVTX).
+    Also accepts one-<Event>-per-line text and full <Events>...</Events> XML.
+    """
+    with open(path, 'rb') as fh:
+        magic = fh.read(8)
+    if magic == b'ElfFile\x00':
+        return _parse_evtx_binary(path)
+    return _parse_evtx_xml(path)
+
+
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 SUPPORTED_FORMATS = {
@@ -443,6 +673,7 @@ SUPPORTED_FORMATS = {
     'audit_log':    _parse_audit_log,
     'web_access':   _parse_web_access,
     'sysmon_linux': _parse_sysmon_linux,
+    'evtx':         _parse_evtx,
 }
 
 

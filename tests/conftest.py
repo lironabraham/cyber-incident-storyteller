@@ -97,3 +97,9 @@ def web_log(tmp_path) -> Path:
 def sysmon_linux_log(tmp_path) -> Path:
     from generate_lab import generate_sysmon_linux_lab
     return generate_sysmon_linux_lab(output_path=tmp_path / 'lab_sysmon_linux.log')
+
+
+@pytest.fixture
+def evtx_log(tmp_path) -> Path:
+    from generate_lab import generate_evtx_attack_log
+    return generate_evtx_attack_log(output_path=tmp_path / 'lab_windows_attack.xml')

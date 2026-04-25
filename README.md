@@ -4,7 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ais-storyteller)](https://pypi.org/project/ais-storyteller/)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/lironabraham/cyber-incident-storyteller/pkgs/container/ais-storyteller)
 
-An autonomous DFIR tool that turns raw Linux host logs into a readable incident report — no cloud dependency, no LLM, no SIEM required.
+An autonomous DFIR tool that turns raw Linux and Windows host logs into a readable incident report — no cloud dependency, no LLM, no SIEM required.
 
 Drop in a log file, get back a Markdown report with a timeline, MITRE ATT&CK technique mapping, and a sequence diagram showing exactly what the attacker did and when.
 
@@ -81,7 +81,7 @@ docker run --rm ais demo
 
 ```
 ais analyze <log_path>
-    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux  (default: auth_log)
+    --fmt           auth_log|syslog|audit_log|web_access|sysmon_linux|evtx  (default: auth_log)
     --output        path to write the Markdown report                   (default: reports/incident.md)
     --processed-dir directory for SHA-256 hashes and event cache        (default: data/processed)
     --threshold     min failed logins to flag an IP as attacker         (default: 5)
@@ -105,6 +105,9 @@ Exit codes: 0 success · 1 error · 2 integrity verification failure
 | `audit_log` | `/var/log/audit/audit.log` | Process execution, shell spawns, credential file access |
 | `web_access` | `/var/log/nginx/access.log` | HTTP attacks, web shells, scanning, admin access |
 | `sysmon_linux` | Linux Sysmon XML | Process creation, network connections, file deletion |
+| `evtx` | Windows `.evtx` / `wevtutil` XML | Logon/logoff, process creation, scheduled tasks, services, Kerberos, group changes, share access |
+
+> **Windows EVTX support** requires `python-evtx` for binary `.evtx` files: `pip install python-evtx`. Standard `wevtutil` XML exports work without it.
 
 ---
 
@@ -125,6 +128,8 @@ Every generated report contains:
 
 The tool maps events to 40+ ATT&CK techniques across all major tactics:
 
+**Linux (auth.log / audit.log / syslog / Sysmon):**
+
 | Tactic | Example techniques |
 |---|---|
 | Initial Access | T1078 Valid Accounts, T1190 Exploit Public-Facing Application |
@@ -138,6 +143,17 @@ The tool maps events to 40+ ATT&CK techniques across all major tactics:
 | Collection | T1560.001 Archive, T1025 Removable Media |
 | Exfiltration | T1048 Alt Protocol (scp/ftp/rsync) |
 | C2 | T1071 Application Layer Protocol |
+
+**Windows EVTX (4624/4625/4688/4698/4699/4702/4720/4728/4732/4768/4769/4771/5145/7045):**
+
+| Tactic | Example techniques |
+|---|---|
+| Initial Access | T1078 Valid Accounts |
+| Credential Access | T1110 Brute Force, T1110.001 Password Guessing, T1558 Steal/Forge Kerberos Tickets |
+| Execution | T1053.005 Scheduled Task/Job, T1059 Command Interpreter |
+| Persistence | T1053.005 Scheduled Task, T1543.003 Windows Service, T1136.001 Create Account |
+| Privilege Escalation | T1098 Account Manipulation, T1548 Abuse Elevation |
+| Lateral Movement | T1021 Remote Services, T1021.002 SMB/Windows Admin Shares |
 
 Command-level mapping covers 53 tools including `wget`, `curl`, `nc`, `nmap`, `hydra`, `hashcat`, `john`, `useradd`, `tar`, `scp`, and more.
 
@@ -176,7 +192,11 @@ ais verify logs/auth.log
 ## Running tests
 
 ```bash
-py -m pytest tests/          # 294 tests
+# Download real Windows EVTX attack samples once (required for EVTX integration tests)
+py tests/download_evtx_fixtures.py
+
+py -m pytest tests/
+py -m pytest tests/ --collect-only -q | tail -1   # check current count
 py -m pytest tests/ --cov=src
 ```
 
@@ -187,20 +207,24 @@ py -m pytest tests/ --cov=src
 ```
 src/
   storyteller.py   — CLI entrypoint (ais analyze / verify / demo)
-  parser.py        — log parsers (5 formats)
+  parser.py        — log parsers (6 formats, incl. Windows EVTX)
   schema.py        — StandardEvent dataclass + TypedDicts
   ingest.py        — normalization, severity scoring, SHA-256 hashing
   mitre.py         — MITRE ATT&CK lookup (40+ techniques, 53 commands)
-  hunter.py        — Trigger-Pivot attack chain engine
+  hunter.py        — Trigger-Pivot engine (4 detection pathways)
   reporter.py      — Markdown + Mermaid report generator
-  generate_lab.py  — synthetic attack log generators
+  generate_lab.py  — synthetic attack log generators (Linux + Windows)
   __init__.py      — public library API
 
 pyproject.toml     — pip-installable package (ais-storyteller)
 Dockerfile         — multi-stage build, ENTRYPOINT ais
-tests/             — 284 tests across all modules
+tests/
+  test_*.py                — unit + integration tests
+  test_evtx_real_samples.py — cyber-logic regression suite (real attack samples)
+  download_evtx_fixtures.py — fetch EVTX samples from sbousseaden/EVTX-ATTACK-SAMPLES
+  fixtures/evtx/           — EVTX binary samples (gitignored, download separately)
 logs/              — input log files (read-only, never modified)
 data/processed/    — normalized JSON + SHA-256 hashes (generated)
 reports/           — generated incident reports (generated)
-docs/              — forensic integrity design whitepaper
+docs/              — MkDocs site (detection coverage, roadmap, CLI reference)
 ```

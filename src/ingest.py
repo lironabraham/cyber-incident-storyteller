@@ -29,7 +29,10 @@ from parser import parse_log
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
-_SUCCESS_TYPES = {'Accepted Password', 'Accepted Publickey', 'Audit Login'}
+_SUCCESS_TYPES = {
+    'Accepted Password', 'Accepted Publickey', 'Audit Login',
+    'Windows Logon Success', 'Windows Remote Logon',
+}
 _SEVERITY_ORDER = ('info', 'low', 'medium', 'high', 'critical')
 
 _DEFAULT_PROCESSED_DIR = Path(__file__).parent.parent / 'data' / 'processed'
@@ -107,6 +110,32 @@ def _compute_severity(
     if event_type == 'File Deleted':
         return 'medium'
 
+    # ── Windows EVTX ──────────────────────────────────────────────────────────
+    if event_type in _SUCCESS_TYPES and event_type.startswith('Windows'):
+        return 'critical' if failures >= 5 else 'info'
+    if event_type == 'Windows Logon Failure':
+        if failures >= 20:
+            return 'high'
+        if failures >= 5:
+            return 'medium'
+        return 'low'
+    if event_type == 'Windows Explicit Credential Use':
+        return 'high'
+    if event_type == 'Windows Privilege Assigned':
+        return 'medium'
+    if event_type == 'Windows Process Creation':
+        return 'info'   # upgraded via map_command() in ingest()
+    if event_type in ('Windows Service Installed', 'Windows Account Created'):
+        return 'high'
+    if event_type in ('Windows Scheduled Task', 'Windows Group Member Added'):
+        return 'medium'
+    if event_type == 'Windows Kerberos PreAuth Failure':
+        return 'medium'
+    if event_type in ('Windows Kerberos TGT Request', 'Windows Kerberos Service Ticket'):
+        return 'low'
+    if event_type == 'Windows Share Access':
+        return 'low'
+
     return 'low'
 
 
@@ -175,6 +204,33 @@ def _action_taken(event_type: str, user: str | None, ip: str | None, raw: str) -
         return f"Outbound network connection to {s}"
     if event_type == 'File Deleted':
         return f"File deleted by process (possible indicator removal)"
+    # ── Windows EVTX ──────────────────────────────────────────────────────────
+    if event_type == 'Windows Logon Success':
+        return f"Windows interactive logon for '{u}'"
+    if event_type == 'Windows Remote Logon':
+        return f"Windows remote/network logon for '{u}' from {s}"
+    if event_type == 'Windows Logon Failure':
+        return f"Windows logon failure for '{u}' from {s}"
+    if event_type == 'Windows Explicit Credential Use':
+        return f"Explicit credential use (pass-the-hash indicator) for '{u}' targeting {s}"
+    if event_type == 'Windows Privilege Assigned':
+        return f"Special privileges assigned to '{u}' (admin token)"
+    if event_type == 'Windows Process Creation':
+        return f"Process created: {u}"   # u holds command line (stored in user field)
+    if event_type == 'Windows Service Installed':
+        return f"New Windows service installed by '{u}'"
+    if event_type == 'Windows Scheduled Task':
+        return f"Scheduled task created or modified by '{u}'"
+    if event_type == 'Windows Account Created':
+        return f"Windows account created: '{u}'"
+    if event_type == 'Windows Group Member Added':
+        return f"User '{u}' added to privileged group"
+    if event_type in ('Windows Kerberos TGT Request', 'Windows Kerberos Service Ticket'):
+        return f"Kerberos ticket request for '{u}' from {s}"
+    if event_type == 'Windows Kerberos PreAuth Failure':
+        return f"Kerberos pre-authentication failure for '{u}' from {s}"
+    if event_type == 'Windows Share Access':
+        return f"Windows network share access from {s}"
     return event_type
 
 
@@ -223,7 +279,10 @@ def ingest(
     # First pass: tally failures per IP for context-aware severity
     ip_failure_counts: dict[str, int] = {}
     for _, row in df.iterrows():
-        if row['event_type'] in ('Failed Login', 'Invalid User', 'Audit Auth Failure'):
+        if row['event_type'] in (
+            'Failed Login', 'Invalid User', 'Audit Auth Failure',
+            'Windows Logon Failure', 'Windows Kerberos PreAuth Failure',
+        ):
             ip = row.get('source_ip')
             if ip and pd.notna(ip):
                 ip_failure_counts[ip] = ip_failure_counts.get(ip, 0) + 1
@@ -250,8 +309,8 @@ def ingest(
         pid = pid_m.group(1) if pid_m else None
 
         mitre_id, mitre_name = map_event(event_type)
-        # Process Execution: resolve MITRE + severity from the command (stored in user)
-        if event_type == 'Process Execution' and user:
+        # Process Execution / Windows Process Creation: resolve MITRE + severity from command
+        if event_type in ('Process Execution', 'Windows Process Creation') and user:
             cmd_mitre_id, cmd_mitre_name = map_command(user)
             if cmd_mitre_id:
                 mitre_id, mitre_name = cmd_mitre_id, cmd_mitre_name

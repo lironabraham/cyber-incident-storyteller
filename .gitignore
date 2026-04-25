@@ -18,5 +18,9 @@ data/processed/*
 .DS_Store
 Thumbs.db
 
+# Test fixtures — binary EVTX samples (download via tests/download_evtx_fixtures.py)
+tests/fixtures/evtx/*.evtx
+
 # Private — not for public repo
 ROADMAP.md
+!docs/roadmap.md
