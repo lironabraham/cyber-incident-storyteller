@@ -69,7 +69,7 @@ Exit codes from `ais verify`:
 | `mitre_technique` | `object` | `{"id": string\|null, "name": string\|null}` |
 | `raw` | `string` | The original unmodified log line |
 | `source_log` | `string` | Filename of the origin log (e.g. `"auth.log"`) |
-| `log_format` | `string` | Parser used: `auth_log`, `syslog`, `audit_log`, `web_access`, `sysmon_linux` |
+| `log_format` | `string` | Parser used: `auth_log`, `syslog`, `audit_log`, `web_access`, `sysmon_linux`, `evtx` |
 | `pid` | `string\|null` | Process ID extracted from syslog-style lines |
 
 The `raw` field preserves the exact original log line byte-for-byte, enabling independent verification that the parsed event faithfully represents the source evidence.

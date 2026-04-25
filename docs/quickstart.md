@@ -66,6 +66,17 @@ You'll see a MITRE-mapped incident report printed to stdout, including:
     ais analyze /var/log/sysmon.xml --fmt sysmon_linux --output incident.md
     ```
 
+=== "Windows EVTX"
+
+    ```bash
+    # Binary .evtx (requires: pip install python-evtx)
+    ais analyze "C:\Windows\System32\winevt\Logs\Security.evtx" --fmt evtx --output incident.md
+
+    # wevtutil XML export (no extra dependency)
+    wevtutil qe Security /f:XML > security.xml
+    ais analyze security.xml --fmt evtx --output incident.md
+    ```
+
 Open `incident.md` in any Markdown viewer that renders Mermaid diagrams — GitHub, VS Code (with Mermaid plugin), or Obsidian.
 
 ---

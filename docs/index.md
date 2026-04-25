@@ -1,6 +1,6 @@
 # Cyber Incident Storyteller
 
-**Autonomous DFIR — turns raw Linux host logs into MITRE-mapped attack narratives.**  
+**Autonomous DFIR — turns raw Linux and Windows host logs into MITRE-mapped attack narratives.**  
 No cloud. No LLM. No SIEM required.
 
 [![Tests](https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml/badge.svg)](https://github.com/lironabraham/cyber-incident-storyteller/actions/workflows/test.yml)
@@ -17,8 +17,8 @@ Drop in a log file, get back a complete incident report in seconds:
 logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
 ```
 
-1. **Parses** Linux host logs into a normalized event stream
-2. **Hunts** for attacker IPs using a Trigger-Pivot algorithm — finds brute-force sources, then follows everything they touched
+1. **Parses** Linux and Windows host logs into a normalized event stream
+2. **Hunts** for attacker IPs using a 4-pass Trigger-Pivot algorithm — brute-force, NTLM relay, Kerberoasting, and high-value persistence events
 3. **Correlates** events into ranked attack chains with severity scoring
 4. **Reports** a human-readable document with MITRE ATT&CK mappings and a Mermaid.js sequence diagram
 
@@ -84,6 +84,7 @@ Every report contains:
 | `audit_log` | `/var/log/audit/audit.log` — process execution, shell spawns |
 | `web_access` | `/var/log/nginx/access.log` — HTTP attacks, web shells |
 | `sysmon_linux` | Linux Sysmon XML — process creation, network connections |
+| `evtx` | Windows `.evtx` / `wevtutil` XML — logon, process, Kerberos, services, scheduled tasks |
 
 → [Full format reference](supported-formats.md)
 
@@ -94,4 +95,4 @@ Every report contains:
 - **Offline-first** — works on air-gapped hosts, no internet connection required
 - **Forensically defensible** — SHA-256 chain-of-custody, source logs never modified
 - **Zero dependencies on cloud or AI** — runs on any Python 3.12+ host in under a minute
-- **MITRE ATT&CK mapped** — 40+ techniques, 53 commands covered out of the box
+- **MITRE ATT&CK mapped** — 40+ techniques, 53 commands, Linux and Windows coverage out of the box

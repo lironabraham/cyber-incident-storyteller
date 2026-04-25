@@ -19,7 +19,7 @@ import pandas as pd
 # Self-bootstrap import path when run as a script (mirrors ingest.py pattern)
 sys.path.insert(0, str(Path(__file__).parent))
 
-SUPPORTED_FORMATS = ('auth_log', 'syslog', 'audit_log', 'web_access', 'sysmon_linux')
+SUPPORTED_FORMATS = ('auth_log', 'syslog', 'audit_log', 'web_access', 'sysmon_linux', 'evtx')
 
 
 @dataclass

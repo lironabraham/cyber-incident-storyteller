@@ -10,7 +10,7 @@ ais analyze <log_path> [options]
 
 | Option | Default | Description |
 |---|---|---|
-| `--fmt` | `auth_log` | Log format: `auth_log` \| `syslog` \| `audit_log` \| `web_access` \| `sysmon_linux` |
+| `--fmt` | `auth_log` | Log format: `auth_log` \| `syslog` \| `audit_log` \| `web_access` \| `sysmon_linux` \| `evtx` |
 | `--output` | `reports/incident.md` | Path to write the Markdown report |
 | `--processed-dir` | `data/processed` | Directory for SHA-256 hashes and serialized event cache |
 | `--threshold` | `5` | Minimum failed logins to flag an IP as a threat actor |
@@ -23,6 +23,9 @@ ais analyze /var/log/auth.log --fmt auth_log --output reports/ssh_incident.md
 
 # Web attack investigation
 ais analyze /var/log/nginx/access.log --fmt web_access --output reports/web_incident.md
+
+# Windows EVTX investigation
+ais analyze security.evtx --fmt evtx --output reports/windows_incident.md
 
 # Lower threshold — flag IPs after just 3 failures
 ais analyze /var/log/auth.log --threshold 3
