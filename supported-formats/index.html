@@ -938,7 +938,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>python-evtx
 </code></pre></div>
 <p>XML exports from <code>wevtutil qe</code> work without the extra dependency.</p>
-<p><strong>Covered EventIDs:</strong></p>
+<p><strong>Security / System channel EventIDs:</strong></p>
 <table>
 <thead>
 <tr>
@@ -951,7 +951,7 @@
 <tr>
 <td>4624</td>
 <td>Security</td>
-<td>Logon success (interactive, remote, batch)</td>
+<td>Logon success — interactive, remote, batch; <strong>LogonType 9</strong> (token impersonation → <code>Windows NewCredentials Logon</code>); <strong>LogonType 3/10 from localhost</strong> (self-relay → <code>Windows Local Relay Logon</code>)</td>
 </tr>
 <tr>
 <td>4625</td>
@@ -1010,12 +1010,104 @@
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Binary .evtx (requires python-evtx)</span>
+<p><strong>Windows Sysmon channel (Microsoft-Windows-Sysmon/Operational):</strong></p>
+<p>Sysmon events are automatically detected by provider name and routed to a dedicated parser. No extra <code>--fmt</code> flag needed — pass <code>--fmt evtx</code> as normal.</p>
+<table>
+<thead>
+<tr>
+<th>Sysmon EID</th>
+<th>Event type</th>
+<th>MITRE</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sysmon Process Created</td>
+<td>—</td>
+<td>command mapped per <code>map_command()</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sysmon Network Connection</td>
+<td>T1071</td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td>Sysmon Image Loaded</td>
+<td>T1055.001</td>
+<td>filtered to credential-dumping DLLs only</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Sysmon Remote Thread</td>
+<td>T1055</td>
+<td>process injection</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Sysmon Process Access</td>
+<td>T1003.001</td>
+<td>LSASS only (PROCESS_VM_READ bit required)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Sysmon File Created</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>12</td>
+<td>Sysmon Registry Key Modified</td>
+<td>T1547.001</td>
+<td>autorun / persistence keys only</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Sysmon Registry Value Modified</td>
+<td>T1547.001</td>
+<td>autorun / persistence keys only</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Sysmon Named Pipe Created</td>
+<td>T1559.001</td>
+<td></td>
+</tr>
+<tr>
+<td>18</td>
+<td>Sysmon Named Pipe Connected</td>
+<td>T1559.001</td>
+<td></td>
+</tr>
+<tr>
+<td>20</td>
+<td>Sysmon WMI Subscription</td>
+<td>T1546.003</td>
+<td></td>
+</tr>
+<tr>
+<td>21</td>
+<td>Sysmon WMI Subscription</td>
+<td>T1546.003</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>EID 2 (file creation time changed), 4/5 (process terminated), 6 (driver loaded), 9 (raw disk access) and config-change events are intentionally skipped as noise.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Binary .evtx — Security/System channel (requires python-evtx)</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ais<span class="w"> </span>analyze<span class="w"> </span>logs/security.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># wevtutil XML export (no extra dependency)</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>wevtutil<span class="w"> </span>qe<span class="w"> </span>Security<span class="w"> </span>/f:XML<span class="w"> </span>&gt;<span class="w"> </span>security.xml
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>ais<span class="w"> </span>analyze<span class="w"> </span>security.xml<span class="w"> </span>--fmt<span class="w"> </span>evtx
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Binary .evtx — Sysmon channel (same flag, provider auto-detected)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>ais<span class="w"> </span>analyze<span class="w"> </span>logs/sysmon.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># wevtutil XML export (no extra dependency)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>wevtutil<span class="w"> </span>qe<span class="w"> </span>Security<span class="w"> </span>/f:XML<span class="w"> </span>&gt;<span class="w"> </span>security.xml
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>ais<span class="w"> </span>analyze<span class="w"> </span>security.xml<span class="w"> </span>--fmt<span class="w"> </span>evtx
 </code></pre></div>
 <hr />
 <h2 id="combining-formats">Combining formats</h2>

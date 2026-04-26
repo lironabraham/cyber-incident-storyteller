@@ -547,23 +547,50 @@
 
 
 <h1 id="sample-report">Sample Report</h1>
-<p>Real output from <code>ais analyze</code> run against a captured Windows Security Event Log from
+<p>Real output from <code>ais analyze</code> run against a captured Windows Sysmon + Security Event Log from
 <a href="https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES">sbousseaden/EVTX-ATTACK-SAMPLES</a>.
-The log captures an <strong>NTLM self-relay privilege escalation</strong> — the attacker relays their
-own NTLM authentication to the local SMB service, obtaining an <code>Administrator</code> session
-with no prior failed logins. This is the silent-access detection pathway in action:
-the tool flags a compromise that would be invisible to any threshold-based brute-force detector.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>NTLM2SelfRelay-med0x2e-security_4624_4688.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx<span class="w"> </span>--output<span class="w"> </span>incident.md
+The log captures a <strong>MalSecLogon credential dump</strong> — the attacker abuses <code>CreateProcessWithLogonW</code>
+(LogonType 9) to spawn a process with impersonated credentials, then directly reads LSASS memory
+via <code>OpenProcess(PROCESS_VM_READ)</code> to dump credential hashes.</p>
+<p>This sample exercises <strong>three detection pathways simultaneously</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Chain</th>
+<th>Detection pass</th>
+<th>Why it fired</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>credential_access</code></td>
+<td>Pass 5 — LSASS sweep</td>
+<td>Sysmon EID 10 with PROCESS_VM_READ on lsass.exe</td>
+</tr>
+<tr>
+<td><code>unauthorized_access</code></td>
+<td>Pass 4 — high-value sweep</td>
+<td>LogonType 9 → <code>Windows NewCredentials Logon</code> (token impersonation)</td>
+</tr>
+<tr>
+<td><code>lateral_movement</code></td>
+<td>Pass 4 — high-value sweep</td>
+<td><code>Windows Token Rights Adjusted</code> — T1134</td>
+</tr>
+</tbody>
+</table>
+<p>Note that <strong>zero failed logins appear</strong> anywhere in this log. All three chains were detected
+entirely through behavioural telemetry with no IP attribution — this attack would be completely
+invisible to any threshold-based brute-force detector.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ais<span class="w"> </span>analyze<span class="w"> </span>tutto_malseclogon.evtx<span class="w"> </span>--fmt<span class="w"> </span>evtx<span class="w"> </span>--output<span class="w"> </span>incident.md
 </code></pre></div>
-<p>Note the <strong>unauthorized_access / Compromised: Yes</strong> result with <strong>zero failed logins</strong> —
-the tool detected a silent NTLM relay entirely through Pass 2 (success-only logon detection).</p>
 <hr />
 <h1 id="cyber-incident-report">Cyber Incident Report</h1>
-<p><em>Generated: 2026-04-25 20:54 UTC</em></p>
+<p><em>Generated: 2026-04-26 13:39 UTC</em></p>
 <h2 id="executive-summary-bluf">Executive Summary (BLUF)</h2>
-<p>Analysis of <strong>9</strong> log events identified <strong>1 attacking IP(s)</strong>.
-<strong>1 attacker(s) achieved successful authentication</strong>, potentially compromising account(s): <code>Administrator</code>.
-Maximum incident severity: <strong>MEDIUM</strong>.</p>
+<p>Analysis of <strong>13</strong> log events identified <strong>3 attack chain(s)</strong>.
+<strong>3 attacker(s) achieved successful authentication</strong>, potentially compromising account(s): <code>IEUser</code>, <code>MSEDGEWIN10$</code>, <code>MSEDGEWIN10\IEUser</code>.
+Maximum incident severity: <strong>CRITICAL</strong>.</p>
 <h2 id="attack-timeline">Attack Timeline</h2>
 <table>
 <thead>
@@ -578,92 +605,86 @@ Maximum incident severity: <strong>MEDIUM</strong>.</p>
 </thead>
 <tbody>
 <tr>
-<td>04:41:37</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Remote Logon</td>
-<td><code>T1021</code> Remote Services</td>
-<td>info</td>
+<td>17:33:01</td>
+<td>—</td>
+<td><code>IEUser</code></td>
+<td>Windows Token Rights Adjusted</td>
+<td><code>T1134</code> Access Token Manipulation</td>
+<td>low</td>
 </tr>
 <tr>
-<td>04:41:45</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Privilege Assigned</td>
-<td><code>T1078.002</code> Valid Accounts: Domain Accounts</td>
-<td>medium</td>
+<td>17:33:01</td>
+<td>—</td>
+<td><code>IEUser</code></td>
+<td>Windows NewCredentials Logon</td>
+<td><code>T1078</code> Valid Accounts</td>
+<td>high</td>
 </tr>
 <tr>
-<td>04:41:47</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Remote Logon</td>
-<td><code>T1021</code> Remote Services</td>
-<td>info</td>
+<td>17:33:01</td>
+<td>—</td>
+<td><code>MSEDGEWIN10\IEUser</code></td>
+<td>Sysmon Process Access</td>
+<td><code>T1003.001</code> OS Credential Dumping: LSASS Memory</td>
+<td>critical</td>
 </tr>
 <tr>
-<td>04:41:52</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Privilege Assigned</td>
-<td><code>T1078.002</code> Valid Accounts: Domain Accounts</td>
-<td>medium</td>
-</tr>
-<tr>
-<td>04:41:54</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Remote Logon</td>
-<td><code>T1021</code> Remote Services</td>
-<td>info</td>
-</tr>
-<tr>
-<td>04:41:58</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Privilege Assigned</td>
-<td><code>T1078.002</code> Valid Accounts: Domain Accounts</td>
-<td>medium</td>
-</tr>
-<tr>
-<td>04:42:00</td>
-<td>192.168.1.219</td>
-<td><code>Administrator</code></td>
-<td>Windows Remote Logon</td>
-<td><code>T1021</code> Remote Services</td>
-<td>info</td>
+<td>17:33:08</td>
+<td>—</td>
+<td><code>MSEDGEWIN10$</code></td>
+<td>Windows Token Rights Adjusted</td>
+<td><code>T1134</code> Access Token Manipulation</td>
+<td>low</td>
 </tr>
 </tbody>
 </table>
 <h2 id="visual-sequence-map">Visual Sequence Map</h2>
 <pre class="mermaid"><code>sequenceDiagram
-    participant A as Attacker (192.168.1.219)
-    participant wind10_winla as wind10.winlab.local
-    A-&gt;&gt;wind10_winla: Windows Remote Logon [T1021] (04:41:37)
-    A-&gt;&gt;wind10_winla: Windows Privilege Assigned [T1078.002] (04:41:45)
-    A-&gt;&gt;wind10_winla: Windows Remote Logon [T1021] (04:41:47)
-    A-&gt;&gt;wind10_winla: Windows Privilege Assigned [T1078.002] (04:41:52)
-    A-&gt;&gt;wind10_winla: Windows Remote Logon [T1021] (04:41:54)
-    A-&gt;&gt;wind10_winla: Windows Privilege Assigned [T1078.002] (04:41:58)
-    A-&gt;&gt;wind10_winla: Windows Remote Logon [T1021] (04:42:00)</code></pre>
+    participant A as Attacker (local)
+    participant MSEDGEWIN10 as MSEDGEWIN10
+    A-&gt;&gt;MSEDGEWIN10: Windows Token Rights Adjusted [T1134] (17:33:01)
+    A-&gt;&gt;MSEDGEWIN10: Windows NewCredentials Logon [T1078] (17:33:01)
+    A-&gt;&gt;MSEDGEWIN10: Sysmon Process Access [T1003.001] (17:33:01)
+    A-&gt;&gt;MSEDGEWIN10: Windows Token Rights Adjusted [T1134] (17:33:08)</code></pre>
 <h2 id="threat-actor-detail">Threat Actor Detail</h2>
-<h3 id="1921681219-medium"><code>192.168.1.219</code> — MEDIUM</h3>
+<h3 id="chain-1-critical-credential-access">Chain 1 — <code>CRITICAL</code> · Credential Access</h3>
+<ul>
+<li><strong>Chain type</strong>: Credential Access</li>
+<li><strong>Compromised</strong>: Yes [!]</li>
+<li><strong>Primary target account</strong>: <code>MSEDGEWIN10\IEUser</code></li>
+<li><strong>Attack progression</strong>: <code>T1003.001</code></li>
+<li><strong>Detection</strong>: Pass 5 — Sysmon EID 10 (LSASS PROCESS_VM_READ)</li>
+<li><strong>Events in chain</strong>: 1</li>
+<li><strong>Active window</strong>: 17:33:01 → 17:33:01</li>
+</ul>
+<h3 id="chain-2-high-unauthorized-access">Chain 2 — <code>HIGH</code> · Unauthorized Access</h3>
 <ul>
 <li><strong>Chain type</strong>: Unauthorized Access</li>
 <li><strong>Compromised</strong>: Yes [!]</li>
-<li><strong>Primary target account</strong>: <code>Administrator</code></li>
-<li><strong>Attack progression</strong>: <code>T1021</code> -&gt; <code>T1078.002</code></li>
-<li><strong>Events in chain</strong>: 7</li>
-<li><strong>Active window</strong>: 04:41:37 -&gt; 04:42:00</li>
+<li><strong>Primary target account</strong>: <code>IEUser</code></li>
+<li><strong>Attack progression</strong>: <code>T1134</code> → <code>T1078</code></li>
+<li><strong>Detection</strong>: Pass 4 — LogonType 9 (<code>Windows NewCredentials Logon</code>) is inherently suspicious</li>
+<li><strong>Events in chain</strong>: 2</li>
+<li><strong>Active window</strong>: 17:33:01 → 17:33:01</li>
+</ul>
+<h3 id="chain-3-low-lateral-movement">Chain 3 — <code>LOW</code> · Lateral Movement</h3>
+<ul>
+<li><strong>Chain type</strong>: Lateral Movement</li>
+<li><strong>Compromised</strong>: Yes [!]</li>
+<li><strong>Primary target account</strong>: <code>MSEDGEWIN10$</code></li>
+<li><strong>Attack progression</strong>: <code>T1134</code></li>
+<li><strong>Detection</strong>: Pass 4 — <code>Windows Token Rights Adjusted</code> (machine account)</li>
+<li><strong>Events in chain</strong>: 1</li>
+<li><strong>Active window</strong>: 17:33:08 → 17:33:08</li>
 </ul>
 <h2 id="recommendations">Recommendations</h2>
 <ol>
-<li>Immediately audit and rotate credentials for all compromised accounts.</li>
-<li>Investigate NTLM relay indicators: repeated rapid logon/privilege-assigned pairs from
-   the same source IP suggest automated relay tooling (Responder, ntlmrelayx).</li>
-<li>Enforce SMB signing on all domain hosts to prevent NTLM relay attacks.</li>
-<li>Enable Extended Protection for Authentication (EPA) on IIS and other services.</li>
-<li>Consider disabling NTLMv1 and auditing NTLMv2 usage across the domain.</li>
+<li><strong>Contain immediately</strong> — isolate <code>MSEDGEWIN10</code> from the network; assume all local credentials are compromised.</li>
+<li><strong>Rotate all credentials</strong> on the host: <code>IEUser</code>, <code>MSEDGEWIN10$</code> machine account, and any accounts whose hashes were in LSASS at the time.</li>
+<li><strong>Investigate LogonType 9 usage</strong> — <code>CreateProcessWithLogonW</code> is rarely used by legitimate software; review the parent process and spawned child to identify the impersonation source.</li>
+<li><strong>Enable Credential Guard</strong> on Windows 10/11 endpoints to prevent LSASS memory reads even from high-privileged processes.</li>
+<li><strong>Audit token-manipulation events (4703/4672)</strong> — repeated <code>Windows Token Rights Adjusted</code> from a non-SYSTEM process is a strong indicator of privilege-escalation tooling.</li>
+<li><strong>Deploy Sysmon</strong> with a configuration that audits EID 10 (process access) if not already present; this attack is invisible without endpoint telemetry.</li>
 </ol>
 <h2 id="forensic-integrity">Forensic Integrity</h2>
 <table>
@@ -675,8 +696,8 @@ Maximum incident severity: <strong>MEDIUM</strong>.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>NTLM2SelfRelay-med0x2e-security_4624_4688.evtx</code></td>
-<td>9</td>
+<td><code>tutto_malseclogon.evtx</code></td>
+<td>13</td>
 </tr>
 </tbody>
 </table>
