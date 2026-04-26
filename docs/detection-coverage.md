@@ -2,6 +2,37 @@
 
 Every event type, Windows EventID, MITRE technique, and detection pathway the tool currently supports.
 
+## MITRE ATT&CK Coverage Matrix
+
+**62 of ~242 parent techniques** detected across **13 of 13 tactics** (MITRE ATT&CK Enterprise v18).
+
+!!! tip "Full interactive matrix"
+    Drag [`mitre-coverage-layer.json`](mitre-coverage-layer.json) onto
+    [navigator.attack.mitre.org](https://mitre-attack.github.io/attack-navigator/)
+    to see every ATT&CK technique colour-coded by whether this tool detects it.
+
+### Tactic Summary
+
+| Tactic | Detected | Total (v18) | Coverage |
+|---|---|---|---|
+| Reconnaissance | **2** | 11 | 18% |
+| Initial Access | **1** | 11 | 9% |
+| Execution | **7** | 17 | 41% |
+| Persistence | **8** | 23 | 35% |
+| Privilege Escalation | **1** | 14 | 7% |
+| Defense Evasion | **13** | 47 | 28% |
+| Credential Access | **9** | 17 | 53% |
+| Discovery | **8** | 34 | 24% |
+| Lateral Movement | **4** | 9 | 44% |
+| Collection | **2** | 17 | 12% |
+| Command and Control | **3** | 18 | 17% |
+| Exfiltration | **1** | 9 | 11% |
+| Impact | **3** | 15 | 20% |
+
+> Coverage numbers reflect `src/mitre.py`. Run `ais coverage` to regenerate after adding new detections.
+
+---
+
 ---
 
 ## Windows EventIDs (EVTX parser)

@@ -106,7 +106,7 @@ SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
     'base64':    ('T1132.001', 'Data Encoding: Standard Encoding'),
     # ── Persistence ───────────────────────────────────────────────────────────
     'crontab':   ('T1053.003', 'Scheduled Task/Job: Cron'),
-    'at':        ('T1053.001', 'Scheduled Task/Job: At'),
+    'at':        ('T1053.002', 'Scheduled Task/Job: At'),
     'useradd':   ('T1136.001', 'Create Account: Local Account'),
     'adduser':   ('T1136.001', 'Create Account: Local Account'),
     'usermod':   ('T1098',     'Account Manipulation'),

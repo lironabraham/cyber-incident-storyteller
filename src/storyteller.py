@@ -312,6 +312,23 @@ def _cmd_verify(args: argparse.Namespace) -> int:
     return 2
 
 
+def _cmd_coverage(args: argparse.Namespace) -> int:
+    import json
+    from coverage import build_coverage_layer, build_coverage_markdown, coverage_summary
+
+    if args.fmt == 'navigator':
+        text = json.dumps(build_coverage_layer(), indent=2)
+    else:
+        text = build_coverage_markdown()
+
+    if args.output:
+        Path(args.output).write_text(text, encoding='utf-8')
+        print(f'Coverage written to {args.output}  ({coverage_summary()})')
+    else:
+        print(text)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """
     Entry point for the Cyber Incident Storyteller CLI.
@@ -343,6 +360,12 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser('demo', help='Run a self-contained demo: generate synthetic logs, hunt chains, print report')
 
+    p_coverage = sub.add_parser('coverage', help='Show MITRE ATT&CK coverage matrix')
+    p_coverage.add_argument('--fmt', choices=('markdown', 'navigator'), default='markdown',
+                            help='Output format: markdown (default) or ATT&CK Navigator JSON')
+    p_coverage.add_argument('--output', default=None,
+                            help='Write output to this file instead of stdout')
+
     args = p.parse_args(argv)
     if args.command == 'analyze':
         return _cmd_analyze(args)
@@ -350,6 +373,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_verify(args)
     if args.command == 'demo':
         return _cmd_demo(args)
+    if args.command == 'coverage':
+        return _cmd_coverage(args)
     return 1
 
 
