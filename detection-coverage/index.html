@@ -430,6 +430,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#mitre-attck-coverage-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MITRE ATT&amp;CK Coverage Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MITRE ATT&amp;CK Coverage Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tactic-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tactic Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#windows-eventids-evtx-parser" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -782,6 +810,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#mitre-attck-coverage-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MITRE ATT&amp;CK Coverage Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MITRE ATT&amp;CK Coverage Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tactic-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tactic Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#windows-eventids-evtx-parser" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1013,6 +1069,109 @@
 
 <h1 id="detection-coverage">Detection Coverage</h1>
 <p>Every event type, Windows EventID, MITRE technique, and detection pathway the tool currently supports.</p>
+<h2 id="mitre-attck-coverage-matrix">MITRE ATT&amp;CK Coverage Matrix</h2>
+<p><strong>62 of ~242 parent techniques</strong> detected across <strong>13 of 13 tactics</strong> (MITRE ATT&amp;CK Enterprise v18).</p>
+<div class="admonition tip">
+<p class="admonition-title">Full interactive matrix</p>
+<p>Drag <a href="../mitre-coverage-layer.json"><code>mitre-coverage-layer.json</code></a> onto
+<a href="https://mitre-attack.github.io/attack-navigator/">navigator.attack.mitre.org</a>
+to see every ATT&amp;CK technique colour-coded by whether this tool detects it.</p>
+</div>
+<h3 id="tactic-summary">Tactic Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Tactic</th>
+<th>Detected</th>
+<th>Total (v18)</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reconnaissance</td>
+<td><strong>2</strong></td>
+<td>11</td>
+<td>18%</td>
+</tr>
+<tr>
+<td>Initial Access</td>
+<td><strong>1</strong></td>
+<td>11</td>
+<td>9%</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td><strong>7</strong></td>
+<td>17</td>
+<td>41%</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td><strong>8</strong></td>
+<td>23</td>
+<td>35%</td>
+</tr>
+<tr>
+<td>Privilege Escalation</td>
+<td><strong>1</strong></td>
+<td>14</td>
+<td>7%</td>
+</tr>
+<tr>
+<td>Defense Evasion</td>
+<td><strong>13</strong></td>
+<td>47</td>
+<td>28%</td>
+</tr>
+<tr>
+<td>Credential Access</td>
+<td><strong>9</strong></td>
+<td>17</td>
+<td>53%</td>
+</tr>
+<tr>
+<td>Discovery</td>
+<td><strong>8</strong></td>
+<td>34</td>
+<td>24%</td>
+</tr>
+<tr>
+<td>Lateral Movement</td>
+<td><strong>4</strong></td>
+<td>9</td>
+<td>44%</td>
+</tr>
+<tr>
+<td>Collection</td>
+<td><strong>2</strong></td>
+<td>17</td>
+<td>12%</td>
+</tr>
+<tr>
+<td>Command and Control</td>
+<td><strong>3</strong></td>
+<td>18</td>
+<td>17%</td>
+</tr>
+<tr>
+<td>Exfiltration</td>
+<td><strong>1</strong></td>
+<td>9</td>
+<td>11%</td>
+</tr>
+<tr>
+<td>Impact</td>
+<td><strong>3</strong></td>
+<td>15</td>
+<td>20%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Coverage numbers reflect <code>src/mitre.py</code>. Run <code>ais coverage</code> to regenerate after adding new detections.</p>
+</blockquote>
+<hr />
 <hr />
 <h2 id="windows-eventids-evtx-parser">Windows EventIDs (EVTX parser)</h2>
 <table>
