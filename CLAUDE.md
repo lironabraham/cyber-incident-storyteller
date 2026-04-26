@@ -9,11 +9,11 @@ Autonomous DFIR tool: ingests Linux + Windows logs → correlates attack chains 
 | Module | Role |
 |---|---|
 | `parser.py` | Regex + EVTX binary/XML parsers → unified `pd.DataFrame`; auto-detects `.evtx` magic bytes; dispatches Sysmon channel to `sysmon_evtx.py` |
-| `sysmon_evtx.py` | Windows Sysmon EVTX parser — 12 EventIDs (1/3/7/8/10/11/12/13/17/18/20/21), LSASS PROCESS_VM_READ filter, SUSPICIOUS_DLLS noise filter, persistence key regex |
+| `sysmon_evtx.py` | Windows Sysmon EVTX parser — 12 EventIDs (1/3/7/8/10/11/12/13/17/18/20/21), LSASS PROCESS_VM_READ/WRITE filter, SUSPICIOUS_DLLS noise filter, persistence key regex (20+ patterns), code-injection detection (EID 10) |
 | `schema.py` | `StandardEvent` dataclass + `SourceActor` / `TargetSystem` / `MitreTechnique` TypedDicts |
 | `ingest.py` | DataFrame → `list[StandardEvent]` + context-aware severity + SHA-256 hash |
-| `mitre.py` | MITRE lookup by event type or command name (53 commands, 7 tactic categories); `SUSPICIOUS_DLLS` frozenset for EID 7 noise filter |
-| `hunter.py` | 6-pass Trigger-Pivot engine; chain types: `brute_force` `credential_stuffing` `post_exploitation` `unauthorized_access` `lateral_movement` `credential_access` `defense_evasion` |
+| `mitre.py` | MITRE lookup by event type or command name (60+ commands including LOLBins, 7 tactic categories); `SUSPICIOUS_DLLS` frozenset for EID 7 noise filter |
+| `hunter.py` | 6-pass Trigger-Pivot engine (including Pass 4.5 LOLBin correlation); chain types: `brute_force` `credential_stuffing` `post_exploitation` `unauthorized_access` `lateral_movement` `credential_access` `defense_evasion` |
 | `reporter.py` | Markdown + Mermaid.js report generator |
 | `storyteller.py` | CLI — `analyze`, `verify`, `demo` subcommands |
 | `generate_lab.py` | Synthetic log generators incl. `generate_evtx_attack_log()` |
@@ -42,7 +42,7 @@ Autonomous DFIR tool: ingests Linux + Windows logs → correlates attack chains 
 - **Severity is context-aware** — single failed login = `low`; 20 from one IP = `high`; success after 5+ failures = `critical`
 - **No mocking parsers or DataFrame pipeline in tests** — use real synthetic files from `generate_lab.py`
 - **Trigger engine uses all failure types** (`Failed Login`, `Invalid User`, `Auth Failure`, `Audit Auth Failure`) — not just `Failed Login`
-- **Add MITRE command entries to `SUSPICIOUS_COMMANDS` in `mitre.py`** — never inline in parsers
+- **Add MITRE command entries to `SUSPICIOUS_COMMANDS` in `mitre.py`** — never inline in parsers; current entries include: `sharprdp`, `pcalua`, `wuauclt`, `msxsl`, `appcmd`, `wsmprovhost`, `sqlcmd`, `xwizard`, `syncappvpublishingserver`, `mavinject`, `infdefaultinstall`, `winrm`, `control`, `osk`, `sethc`, `utilman`, `narrator`, `magnify`, `vshadow`, `wermgr`, `desktopimgdownldr`
 - **Sysmon EventID 5 and Windows EventID 4689** (Process Terminated) are always skipped — noise
 - **TypedDicts** (`SourceActor`, `TargetSystem`, `MitreTechnique`) on all dict fields — never bare `dict`
 - **EVTX process field** strips full Windows path → basename, lowercased (e.g. `lsass.exe`)
@@ -52,6 +52,8 @@ Autonomous DFIR tool: ingests Linux + Windows logs → correlates attack chains 
 - **LogonType 9** (CreateProcessWithLogonW) → `Windows NewCredentials Logon` event type → T1078; always suspicious, no IP needed
 - **LogonType 3/10 from localhost** (127.0.0.1/::1) → `Windows Local Relay Logon` event type → T1021; catches KrbRelayUp and NTLM self-relay
 - **New chain type `credential_access`** — LSASS memory dump or object access; `compromised=True`; does not require a prior logon event
+- **`is_lolbin: bool`** — Set in `ingest.py` when MITRE technique is T1218.*, T1021.*, T1140, T1197, T1220, or T1047; enables Pass 4.5 LOLBin correlation engine
+- **Pass 4.5 LOLBin correlation** — Correlates Sysmon Process Created (EID 1) events where `is_lolbin=True` with follow-on events (network, registry, process access, child process) within 60 s window; also fires on suspicious arg patterns (URLs, proxy DLLs, pcalua -a, certutil staging, SharpRDP)
 
 ---
 

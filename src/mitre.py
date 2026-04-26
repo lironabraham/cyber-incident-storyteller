@@ -79,6 +79,17 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     'Sysmon Named Pipe Created':     ('T1559.001', 'Inter-Process Communication: COM'),
     'Sysmon Named Pipe Connected':   ('T1559.001', 'Inter-Process Communication: COM'),
     'Sysmon WMI Subscription':       ('T1546.003', 'Event Triggered Execution: WMI Event Subscription'),
+    # ── PowerShell script-block / module logging ──────────────────────────────
+    'Windows PowerShell Execution':   ('T1059.001', 'Command and Script Interpreter: PowerShell'),
+    'Windows PowerShell Script Block':('T1059.001', 'Command and Script Interpreter: PowerShell'),
+    # ── BITS persistence ──────────────────────────────────────────────────────
+    'Windows BITS Job':               ('T1197',     'BITS Jobs'),
+    # ── WinRM remote shell ────────────────────────────────────────────────────
+    'Windows WinRM Activity':         ('T1021.006', 'Remote Services: WinRM'),
+    # ── DCOM lateral movement ─────────────────────────────────────────────────
+    'Windows DCOM Access Denied':     ('T1021.003', 'Remote Services: Distributed Component Object Model'),
+    # ── SID History injection (T1178 / T1134.005) ─────────────────────────────
+    'Windows SID History Modified':   ('T1134.005', 'Access Token Manipulation: SID-History Injection'),
     # ── catch-all ─────────────────────────────────────────────────────────────
     'Other':              (None, None),
 }
@@ -189,6 +200,31 @@ SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
     'certutil':  ('T1140',     'Deobfuscate/Decode Files or Information'),
     'bitsadmin': ('T1197',     'BITS Jobs'),
     'wmic':      ('T1047',     'Windows Management Instrumentation'),
+    'pcalua':    ('T1218',     'System Binary Proxy Execution'),
+    'wuauclt':   ('T1218.013', 'System Binary Proxy Execution: Electron Application'),
+    'msxsl':     ('T1220',     'XSL Script Processing'),
+    'appcmd':    ('T1505.004', 'Server Software Component: IIS Components'),
+    'wsmprovhost':('T1021.006','Remote Services: WinRM'),
+    'sqlcmd':    ('T1059',     'Command and Script Interpreter'),
+    'xwizard':   ('T1218',     'System Binary Proxy Execution'),
+    'syncappvpublishingserver': ('T1218', 'System Binary Proxy Execution'),
+    'mavinject': ('T1055',     'Process Injection'),
+    'infdefaultinstall': ('T1218', 'System Binary Proxy Execution'),
+    'winrm':     ('T1021.006', 'Remote Services: WinRM'),
+    'sharprdp':  ('T1021.001', 'Remote Services: Remote Desktop Protocol'),
+    'control':   ('T1218',     'System Binary Proxy Execution'),
+    'cpl':       ('T1218',     'System Binary Proxy Execution'),
+    'desktopimgdownldr': ('T1197', 'BITS Jobs'),
+    # ── Accessibility feature backdoors (T1546.008) ────────────────────────────
+    'osk':       ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
+    'sethc':     ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
+    'utilman':   ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
+    'narrator':  ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
+    'magnify':   ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
+    # ── Volume shadow copy / recovery manipulation ─────────────────────────────
+    'vshadow':   ('T1490',     'Inhibit System Recovery'),
+    # ── WMI / process hollowing helpers ───────────────────────────────────────
+    'wermgr':    ('T1055',     'Process Injection'),
     # ── Windows persistence ───────────────────────────────────────────────────
     'schtasks':  ('T1053.005', 'Scheduled Task/Job: Scheduled Task'),
     'sc':        ('T1543.003', 'Create or Modify System Process: Windows Service'),
@@ -229,6 +265,7 @@ def map_command(command: str) -> tuple[str | None, str | None]:
     if not command or not command.strip():
         return (None, None)
     base = command.strip().split()[0]
+    base = base.strip('"\'')          # strip quotes from "C:\path\exe.exe" style args
     base = base.replace('\\', '/').split('/')[-1].lower()
     for ext in ('.exe', '.com', '.bat', '.cmd', '.scr'):
         if base.endswith(ext):

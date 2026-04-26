@@ -24,6 +24,7 @@ pivot_on_actor(ip, events, window_hours)      -> list[StandardEvent]
 build_attack_chains(events, threshold)        -> list[AttackChain]
 """
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import timedelta
@@ -87,6 +88,13 @@ _HIGH_VALUE_TYPES = {
     'Sysmon Named Pipe Connected',     # T1559.001 — IPC / lateral movement
     'Sysmon File Created',             # context-dependent — included for sweep
     'Sysmon Network Connection',       # T1071     — C2 network activity
+    # ── New channel types ─────────────────────────────────────────────────────
+    'Windows PowerShell Script Block', # T1059.001 — obfuscated script execution
+    'Windows PowerShell Execution',    # T1059.001 — script execution
+    'Windows BITS Job',                # T1197     — staging / C2 transfer
+    'Windows WinRM Activity',          # T1021.006 — remote shell
+    'Windows DCOM Access Denied',      # T1021.003 — lateral movement probe
+    'Windows SID History Modified',    # T1134.005 — privilege escalation
 }
 # Sysmon credential access events — handled by dedicated Pass 5.
 _CREDENTIAL_ACCESS_TYPES = {
@@ -309,6 +317,142 @@ def _find_elevation_chains(
     return chains
 
 
+# ── LOLBin follow-on routing ───────────────────────────────────────────────────
+# Maps follow-on event types to the chain type they imply when preceded by a LOLBin.
+_LOLBIN_WINDOW_S = 60
+
+_LOLBIN_FOLLOWON_CHAIN: dict[str, str] = {
+    # Network pivot → lateral movement
+    'Sysmon Network Connection':      'lateral_movement',
+    'Windows Network Connection':     'lateral_movement',
+    # LSASS / credential access
+    'Sysmon Process Access':          'credential_access',
+    'Windows Object Access':          'credential_access',
+    # Registry / autorun persistence → defense evasion
+    'Sysmon Registry Value Modified': 'defense_evasion',
+    'Sysmon Registry Key Modified':   'defense_evasion',
+    'Windows Registry Modified':      'defense_evasion',
+    # Child process / file drop → post exploitation
+    'Sysmon Process Created':         'post_exploitation',
+    'Sysmon File Created':            'post_exploitation',
+    'Windows Process Creation':       'post_exploitation',
+}
+
+# Argument patterns that are suspicious regardless of follow-on events.
+# When a LOLBin matches one of these patterns and has no follow-on within the
+# window, a standalone 'defense_evasion' chain is created (T1218 proxy execution).
+_LOLBIN_SUSPICIOUS_ARG_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r'https?://', re.IGNORECASE),          # URL-based execution
+    re.compile(r'ftp://', re.IGNORECASE),              # FTP staging
+    re.compile(r'\b(advpack|pcwutl|zipfldr|ieadvpack)\.dll\b', re.IGNORECASE),  # proxy DLLs
+    re.compile(r'\bscrobj\.dll\b', re.IGNORECASE),    # regsvr32 squiblydoo
+    re.compile(r'\bpcalua\b.+-a\b', re.IGNORECASE),   # pcalua -a execution
+    re.compile(r'\bcertutil\b.+(-decode|-urlcache)', re.IGNORECASE),  # certutil staging
+    re.compile(r'\bcomputername\s*=', re.IGNORECASE), # SharpRDP and similar RDP lateral-movement tools
+]
+
+# Discovery commands whose LOLBin event alone should never create a chain.
+_DISCOVERY_LOLBINS: frozenset[str] = frozenset({
+    'whoami.exe', 'ipconfig.exe', 'ifconfig.exe', 'tasklist.exe',
+    'netstat.exe', 'hostname.exe', 'systeminfo.exe', 'net.exe', 'net1.exe',
+    'arp.exe', 'ping.exe', 'nbtstat.exe', 'w32tm.exe', 'nltest.exe',
+})
+
+
+def _find_lolbin_chains(
+    events: list[StandardEvent],
+    covered_ids: set[str],
+) -> list[AttackChain]:
+    """Pass 4.5: Correlate LOLBin process executions with follow-on events.
+
+    For each uncovered Sysmon Process Created event where is_lolbin=True,
+    scan all other uncovered events that occur within _LOLBIN_WINDOW_S seconds
+    after the LOLBin. The type of follow-on event determines the chain type —
+    no new chain type is introduced; LOLBins enrich existing tactic buckets.
+
+    Discovery-only LOLBins (whoami, ipconfig, etc.) are skipped unless a
+    suspicious follow-on event appears within the window.
+    """
+    lolbin_seeds = [
+        e for e in events
+        if e.is_lolbin
+        and e.event_type == 'Sysmon Process Created'
+        and e.event_id not in covered_ids
+    ]
+    if not lolbin_seeds:
+        return []
+
+    new_covered: set[str] = set()
+    chains: list[AttackChain] = []
+
+    for seed in sorted(lolbin_seeds, key=lambda e: e.timestamp):
+        if seed.event_id in new_covered:
+            continue
+
+        process = seed.target_system.get('process', '').lower()
+        is_discovery_only = process in _DISCOVERY_LOLBINS
+
+        window_end = seed.timestamp + timedelta(seconds=_LOLBIN_WINDOW_S)
+        followons = [
+            e for e in events
+            if e.event_id != seed.event_id
+            and e.event_id not in covered_ids
+            and e.event_id not in new_covered
+            and seed.timestamp < e.timestamp <= window_end
+            and e.event_type in _LOLBIN_FOLLOWON_CHAIN
+            # Exclude discovery LOLBins from being counted as child-process follow-ons
+            # (whoami → ipconfig is not a meaningful attack chain)
+            and not (
+                e.event_type == 'Sysmon Process Created'
+                and e.target_system.get('process', '').lower() in _DISCOVERY_LOLBINS
+            )
+        ]
+
+        if not followons:
+            # Check for standalone suspicious argument patterns (proxy DLLs, URLs, etc.).
+            # These are high-confidence indicators even without follow-on events.
+            cmdline = seed.source_actor.get('user', '') or ''
+            process = seed.target_system.get('process', '').lower()
+            combined = f'{process} {cmdline}'.strip()
+            if not any(p.search(combined) for p in _LOLBIN_SUSPICIOUS_ARG_PATTERNS):
+                continue
+            new_covered.add(seed.event_id)
+            mitre_id = seed.mitre_technique.get('id', '') or ''
+            standalone_chain_type = (
+                'lateral_movement' if mitre_id.startswith('T1021') else 'defense_evasion'
+            )
+            chains.append(AttackChain(
+                actor_ip=seed.source_actor.get('ip'),
+                actor_user=_primary_user([seed]),
+                severity=seed.severity,
+                mitre_techniques=_unique_techniques([seed]),
+                events=[seed],
+                chain_type=standalone_chain_type,
+                compromised=True,
+            ))
+            continue
+
+        chain_type = _LOLBIN_FOLLOWON_CHAIN[followons[0].event_type]
+        chain_events = sorted([seed] + followons, key=lambda e: e.timestamp)
+
+        for e in chain_events:
+            new_covered.add(e.event_id)
+
+        chain_type_final, compromised = chain_type, True
+        chains.append(AttackChain(
+            actor_ip=seed.source_actor.get('ip'),
+            actor_user=_primary_user(chain_events),
+            severity=_max_severity(chain_events),
+            mitre_techniques=_unique_techniques(chain_events),
+            events=chain_events,
+            chain_type=chain_type_final,
+            compromised=compromised,
+        ))
+
+    covered_ids.update(new_covered)
+    return chains
+
+
 # ── Public API ─────────────────────────────────────────────────────────────────
 
 def find_triggers(events: list[StandardEvent], threshold: int = 5) -> list[str]:
@@ -425,6 +569,10 @@ def build_attack_chains(
              Catches Kerberoasting and password sprays.
     Pass 4 — High-value user/anonymous chains: Persistence, lateral-movement,
              and Sysmon behavioural events not attributed to any IP-based actor.
+    Pass 4.5 — LOLBin correlation: Sysmon Process Created events where
+             is_lolbin=True are correlated with follow-on events (network
+             connection, process access, registry write, child process) within
+             a 60-second window. Routes into existing chain types; no new type.
     Pass 5 — Credential access: Sysmon LSASS memory-read events (EventID 10)
              and Windows Object Access that are not yet covered.  Single-event
              chains with chain_type='credential_access'.
@@ -451,17 +599,36 @@ def build_attack_chains(
     elevation_chains = _find_elevation_chains(events, covered_event_ids)
     chains.extend(elevation_chains)
 
+    # ── Pass 4.5: LOLBin correlation (Sysmon EID 1 + follow-on within 60 s) ───
+    # Runs before Pass 4 so LOLBin seeds can claim follow-on events (e.g.
+    # registry writes) before the high-value sweep absorbs them.
+    lolbin_chains = _find_lolbin_chains(events, covered_event_ids)
+    chains.extend(lolbin_chains)
+
     # ── Pass 4: high-value events not covered by IP/elevation chains ──────────
     # Group uncovered high-value events by user (None = unattributed).
     # For SYSTEM-owned events, compound key (user, process) prevents all Sysmon
     # SYSTEM events collapsing into one undifferentiated chain.
     user_buckets: dict[str | tuple, list[StandardEvent]] = defaultdict(list)
     for e in events:
-        if e.event_type in _HIGH_VALUE_TYPES and e.event_id not in covered_event_ids:
-            user = e.source_actor.get('user')
-            proc = e.target_system.get('process', '')
-            key: str | tuple = (user, proc) if user and 'SYSTEM' in (user or '') else (user or '')
-            user_buckets[key].append(e)
+        if e.event_id in covered_event_ids:
+            continue
+        is_high_value = e.event_type in _HIGH_VALUE_TYPES
+        # Also include Sysmon Process Created events where the command mapped to a
+        # MITRE technique (severity='high') but weren't captured by the LOLBin passes.
+        # Discovery commands (whoami, ipconfig, etc.) are excluded to avoid noise.
+        is_suspicious_proc = (
+            e.event_type == 'Sysmon Process Created'
+            and e.severity in ('high', 'critical')
+            and e.mitre_technique.get('id') is not None
+            and e.target_system.get('process', '').lower() not in _DISCOVERY_LOLBINS
+        )
+        if not (is_high_value or is_suspicious_proc):
+            continue
+        user = e.source_actor.get('user')
+        proc = e.target_system.get('process', '')
+        key: str | tuple = (user, proc) if user and 'SYSTEM' in (user or '') else (user or '')
+        user_buckets[key].append(e)
 
     for key, bucket in user_buckets.items():
         if not bucket:

@@ -40,6 +40,7 @@ class StandardEvent:
     source_log: str                  # filename of the origin log file
     log_format: str                  # 'auth_log' | 'syslog' | 'audit_log' | 'web_access' | 'sysmon_linux'
     pid: str | None = None           # syslog PID for session-affinity linking
+    is_lolbin: bool = False          # True when process command matches a known LOLBin
 
     def __post_init__(self):
         # Enforce UTC-aware timestamp

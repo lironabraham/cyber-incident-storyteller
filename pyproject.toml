@@ -41,3 +41,9 @@ dev = [
 docs = [
     "mkdocs-material>=9",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests that run the full EVTX corpus (~3 min); deselect with -m 'not slow'",
+]

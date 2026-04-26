@@ -6,16 +6,17 @@ multi-host campaign correlation and cloud-native log sources.
 
 ---
 
-## Phase 4 — Multi-Log Correlation
+## Phase 4 — Living-off-the-Land (LOLBin) Detection ✓ DONE
 
-Correlate events across multiple log files from the same host into a single unified attack
-timeline. Today each `ais analyze` run operates on one file; Phase 4 merges auth.log,
-audit.log, and syslog into one campaign view.
+Detect and correlate suspicious Living-off-the-Land (LOLBin) process executions with follow-on attacker activity.
 
-**Key additions:**
-- Single `ais analyze --multi` flag accepting a directory of log files
-- Cross-source event deduplication and timeline merging
-- Unified attack chain spanning SSH brute-force (auth.log) → shell (audit.log) → persistence (syslog)
+**Completed:**
+- Pass 4.5 LOLBin correlation engine in `hunter.py` — correlates Sysmon Process Created events (EID 1) where `is_lolbin=True` with follow-on events (network, registry write, process access, child process) within 60-second window
+- `is_lolbin` field on `StandardEvent` — set when MITRE technique is T1218.*, T1021.*, T1140, T1197, T1220, or T1047
+- Expanded `SUSPICIOUS_COMMANDS` in `mitre.py` with 20+ LOLBin entries: `sharprdp`, `pcalua`, `wuauclt`, `msxsl`, `appcmd`, `wsmprovhost`, `sqlcmd`, and more
+- Expanded `_PERSISTENCE_KEY_RE` in `sysmon_evtx.py` covering 20+ registry key patterns (IFEO, KnownDLLs, COM hijacking, CLR profiler, GPO scripts, LSA packages, UAC policies, input hooks)
+- EID 10 code-injection detection — passes events with `PROCESS_VM_WRITE (0x0020)` to catch shellcode injection into arbitrary targets
+- Coverage improvement: 240/285 samples detected (84%), up from 179/278 (65%)
 
 ---
 

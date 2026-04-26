@@ -99,7 +99,7 @@ class TestToJson:
         required = {
             'event_id', 'timestamp', 'event_type', 'source_actor',
             'target_system', 'action_taken', 'severity', 'mitre_technique',
-            'raw', 'source_log', 'log_format', 'pid',
+            'raw', 'source_log', 'log_format', 'pid', 'is_lolbin',
         }
         assert required == set(d.keys())
 

@@ -35,14 +35,36 @@ SYSMON_EVENT_TYPES: dict[int, str] = {
     # EventID 5 (Process Terminated) intentionally absent — noise, per CLAUDE.md
 }
 
-# EventID 10: must have PROCESS_VM_READ bit set to indicate memory-read capability.
-_VM_READ_BIT = 0x0010
+# EventID 10: access mask bits.
+_VM_READ_BIT  = 0x0010  # PROCESS_VM_READ  — credential dumping indicator
+_VM_WRITE_BIT = 0x0020  # PROCESS_VM_WRITE — code injection indicator
 
-# EventID 12/13: only persistence / autorun registry key paths.
+# EventID 12/13: persistence, privilege-escalation, and defense-evasion registry paths.
+# Broad enough to cover autorun, UAC bypass, DLL hijacking, and policy manipulation.
 _PERSISTENCE_KEY_RE = re.compile(
-    r'\\(?:Run|RunOnce|Services|Image File Execution Options|'
-    r'Winlogon|AppInit_DLLs|UserInit|Shell|CurrentVersion\\Explorer\\Shell Folders|'
-    r'Security\\LSA|WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon)',
+    r'\\(?:'
+    r'Run|RunOnce|Services|'                               # classic autorun / service
+    r'Winlogon|UserInit|Shell|'                            # shell overrides
+    r'AppInit_DLLs|'                                       # DLL injection on login
+    r'KnownDLLs|'                                          # DLL hijacking
+    r'Image File Execution Options|'                       # debugger hijack / UAC bypass
+    r'InprocServer32|LocalServer32|'                       # COM server hijacking
+    r'AppCompatFlags|'                                     # Application Compatibility
+    r'Security\\LSA|'                                      # LSA auth providers
+    r'CurrentVersion\\Explorer\\Shell Folders|'            # startup folders
+    r'ShellExecuteHooks|Browser Helper Objects|'           # shell / browser persistence
+    r'Policies\\Explorer\\Run|'                            # GPO autorun
+    r'COR_PROFILER|'                                       # CLR profiler hijack (T1574.012)
+    r'SharedTaskScheduler|'                                # scheduled task via registry
+    r'User Shell Folders|'                                 # per-user startup folder
+    r'WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon|'
+    r'WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run|'
+    r'GroupPolicy\\Scripts|'                               # GPO script persistence
+    r'Microsoft\\Windows Script Host|'                     # WSH settings
+    r'LSA\\Notification Packages|'                         # LSA notification DLL
+    r'EnableLUA|ConsentPromptBehavior|'                     # UAC policy keys
+    r'DirectInput|DirectX\\'                               # DirectX input hook (keylogger)
+    r')',
     re.IGNORECASE,
 )
 
@@ -56,6 +78,19 @@ def _has_memory_read(granted_access: str) -> bool:
     """Return True when the access mask includes PROCESS_VM_READ (0x0010)."""
     try:
         return bool(int(granted_access, 16) & _VM_READ_BIT)
+    except (ValueError, TypeError):
+        return False
+
+
+def _has_injection_access(granted_access: str) -> bool:
+    """Return True when the access mask includes PROCESS_VM_WRITE (0x0020).
+
+    Classic shellcode injection requires write access to the target process.
+    This catches OpenProcess calls with full/write access to arbitrary targets
+    (e.g. notepad.exe) that don't appear in _HIGH_VALUE_TARGETS.
+    """
+    try:
+        return bool(int(granted_access, 16) & _VM_WRITE_BIT)
     except (ValueError, TypeError):
         return False
 
@@ -128,14 +163,24 @@ def extract_record(
         return _row(event_type, timestamp, hostname, proc, None,
                     target_proc or user, raw_xml)
 
-    # ── EventID 10: ProcessAccess — LSASS + memory-read only ──────────────────
+    # ── EventID 10: ProcessAccess — LSASS (memory-read) + other sensitive targets ──
+    # LSASS requires the PROCESS_VM_READ bit to filter credential-dump noise.
+    # High-value targets (explorer, services, etc.) pass unconditionally.
+    # Any other target passes if the access mask includes PROCESS_VM_WRITE —
+    # a strong indicator of shellcode injection (WriteProcessMemory pattern).
+    _HIGH_VALUE_TARGETS = frozenset({
+        'explorer.exe', 'services.exe', 'winlogon.exe', 'csrss.exe',
+        'spoolsv.exe', 'conhost.exe', 'svchost.exe',
+    })
     if event_id == 10:
         target = _basename(data.get('TargetImage', '') or '')
-        if target != 'lsass.exe':
-            return None
         access = data.get('GrantedAccess', '') or ''
-        if not _has_memory_read(access):
-            return None
+        if target == 'lsass.exe':
+            if not _has_memory_read(access):
+                return None
+        elif target not in _HIGH_VALUE_TARGETS:
+            if not _has_injection_access(access):
+                return None
         return _row(event_type, timestamp, hostname, proc, None, user, raw_xml)
 
     # ── EventID 11: FileCreate ────────────────────────────────────────────────

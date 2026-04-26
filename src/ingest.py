@@ -136,6 +136,18 @@ def _compute_severity(
     if event_type == 'Windows Share Access':
         return 'low'
 
+    # ── Windows new channel types ─────────────────────────────────────────────
+    if event_type in ('Windows PowerShell Script Block', 'Windows PowerShell Execution'):
+        return 'high'   # Script-block logging fires on obfuscated / suspicious scripts
+    if event_type == 'Windows BITS Job':
+        return 'high'   # BITS used for staging / C2 transfer
+    if event_type == 'Windows WinRM Activity':
+        return 'medium'
+    if event_type == 'Windows DCOM Access Denied':
+        return 'low'    # common DCOM noise; elevated when lateral movement is suspected
+    if event_type == 'Windows SID History Modified':
+        return 'high'   # T1134.005 — privilege escalation via SID injection
+
     # ── Windows Sysmon EVTX ───────────────────────────────────────────────────
     if event_type == 'Sysmon Process Access':
         return 'critical'   # LSASS memory read — noise filtered in sysmon_evtx.py
@@ -213,6 +225,19 @@ def _action_taken(event_type: str, user: str | None, ip: str | None, raw: str) -
         return f"Admin panel access from {s}"
     if event_type == 'Web Request':
         return f"Web request from {s}"
+    # ── Windows new channel types ─────────────────────────────────────────────
+    if event_type == 'Windows PowerShell Script Block':
+        return f"PowerShell script block logged for '{u}'"
+    if event_type == 'Windows PowerShell Execution':
+        return f"PowerShell execution recorded for '{u}'"
+    if event_type == 'Windows BITS Job':
+        return f"BITS transfer job created: {u}"
+    if event_type == 'Windows WinRM Activity':
+        return f"WinRM remote shell activity for '{u}'"
+    if event_type == 'Windows DCOM Access Denied':
+        return f"DCOM access denied for '{u}'"
+    if event_type == 'Windows SID History Modified':
+        return f"SID History modified on account '{u}' — possible privilege escalation"
     # ── sysmon_linux ──────────────────────────────────────────────────────────
     if event_type == 'Network Connection':
         return f"Outbound network connection to {s}"
@@ -327,12 +352,25 @@ def ingest(
         pid = pid_m.group(1) if pid_m else None
 
         mitre_id, mitre_name = map_event(event_type)
-        # Process Execution / Windows Process Creation: resolve MITRE + severity from command
-        if event_type in ('Process Execution', 'Windows Process Creation') and user:
+        is_lolbin = False
+        # Process Execution / Windows Process Creation / Sysmon Process Created:
+        # resolve MITRE technique from command name stored in the user field.
+        if event_type in ('Process Execution', 'Windows Process Creation', 'Sysmon Process Created') and user:
             cmd_mitre_id, cmd_mitre_name = map_command(user)
+            if not cmd_mitre_id and event_type == 'Sysmon Process Created':
+                # Fallback: some EVTX CommandLine values start with flags (e.g. "/u /s /i:...")
+                # rather than the executable name. Try matching via the process basename.
+                proc_name = str(row.get('process', '') or '')
+                cmd_mitre_id, cmd_mitre_name = map_command(proc_name)
             if cmd_mitre_id:
                 mitre_id, mitre_name = cmd_mitre_id, cmd_mitre_name
                 severity = 'high'
+                # Flag as LOLBin / standalone-chain-worthy attack tool.
+                is_lolbin = (
+                    cmd_mitre_id.startswith('T1218')    # System Binary Proxy Execution
+                    or cmd_mitre_id.startswith('T1021')  # Lateral movement tools (SharpRDP, etc.)
+                    or cmd_mitre_id in ('T1140', 'T1197', 'T1220', 'T1047')
+                )
             else:
                 severity = 'low'
         else:
@@ -355,6 +393,7 @@ def ingest(
             source_log=log_path.name,
             log_format=fmt,
             pid=pid,
+            is_lolbin=is_lolbin,
         ))
 
     # Persist processed events

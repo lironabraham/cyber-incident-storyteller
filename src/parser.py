@@ -591,7 +591,55 @@ def _evtx_classify(
             u = data.get('Application') or user
             return 'Windows Network Connection', u, ip, None
 
+    if event_id == '4765':
+        u = data.get('SubjectUserName') or data.get('TargetUserName') or user
+        return 'Windows SID History Modified', u, None, None
+
     return 'Other', user, ip, None
+
+
+def _classify_powershell_record(
+    event_id: str, data: dict[str, str], user: str | None
+) -> tuple[str, str | None] | None:
+    """Return (event_type, script_text) for PowerShell EID 800/4104, else None."""
+    if event_id == '4104':
+        script = data.get('ScriptBlockText', '') or ''
+        return 'Windows PowerShell Script Block', script or user
+    if event_id == '800':
+        detail = data.get('DetailSequence', '') or data.get('HostApplication', '') or ''
+        return 'Windows PowerShell Execution', detail or user
+    return None
+
+
+def _classify_winrm_record(
+    event_id: str, data: dict[str, str], user: str | None
+) -> tuple[str, str | None] | None:
+    """Return (event_type, user) for WinRM EID 91/169, else None."""
+    if event_id in ('91', '169'):
+        u = data.get('User') or data.get('ClientId') or user
+        return 'Windows WinRM Activity', u
+    return None
+
+
+def _classify_bits_record(
+    event_id: str, data: dict[str, str], user: str | None
+) -> tuple[str, str | None] | None:
+    """Return (event_type, job_info) for BITS-Client EID 3/59/60, else None."""
+    if event_id in ('3', '59', '60', '16403'):
+        job = data.get('jobTitle') or data.get('Id') or user
+        return 'Windows BITS Job', job
+    return None
+
+
+def _classify_dcom_record(
+    event_id: str, data: dict[str, str], user: str | None
+) -> tuple[str, str | None] | None:
+    """Return (event_type, user) for DCOM EID 10016, else None."""
+    if event_id == '10016':
+        u = (data.get('param7') or data.get('param8') or
+             data.get('Sid') or user)
+        return 'Windows DCOM Access Denied', u
+    return None
 
 
 def _parse_evtx_record(xml_str: str) -> dict | None:
@@ -627,6 +675,38 @@ def _parse_evtx_record(xml_str: str) -> dict | None:
         from sysmon_evtx import extract_record as _sysmon_extract
         eid_int = int(event_id) if event_id.isdigit() else 0
         return _sysmon_extract(eid_int, data, hostname, timestamp, xml_str)
+
+    # Dispatch specialised channel providers before the generic Security classifier.
+    base_user = data.get('TargetUserName') or data.get('SubjectUserName') or None
+    if base_user in _EVTX_NULL_VALUES:
+        base_user = None
+
+    _ps_providers = ('Microsoft-Windows-PowerShell', 'Windows PowerShell')
+    _winrm_providers = ('Microsoft-Windows-WinRM', 'Microsoft-Windows-Remote-Management')
+    _bits_providers = ('Microsoft-Windows-Bits-Client',)
+    _dcom_providers = ('Microsoft-Windows-DistributedCOM',)
+
+    channel_result: tuple[str, str | None] | None = None
+    if any(p in provider_name for p in _ps_providers):
+        channel_result = _classify_powershell_record(event_id, data, base_user)
+    elif any(p in provider_name for p in _winrm_providers):
+        channel_result = _classify_winrm_record(event_id, data, base_user)
+    elif any(p in provider_name for p in _bits_providers):
+        channel_result = _classify_bits_record(event_id, data, base_user)
+    elif any(p in provider_name for p in _dcom_providers):
+        channel_result = _classify_dcom_record(event_id, data, base_user)
+
+    if channel_result is not None:
+        event_type, user_field = channel_result
+        return {
+            'timestamp':  timestamp,
+            'hostname':   hostname,
+            'process':    f'EventID-{event_id}',
+            'event_type': event_type,
+            'source_ip':  None,
+            'user':       user_field,
+            'raw':        xml_str,
+        }
 
     event_type, user, source_ip, command = _evtx_classify(event_id, data)
 

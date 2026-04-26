@@ -13,7 +13,7 @@ Drop in a log file, get back a Markdown report with a timeline, MITRE ATT&CK tec
 ## What it does
 
 1. **Parses** Linux host logs and Windows EVTX files (Security, System, and Sysmon channels) into a normalized event stream
-2. **Hunts** for attacker activity across 6 detection passes — brute-force, silent relay, local elevation, Kerberos spray, high-value standalone events, and LSASS credential dumps
+2. **Hunts** for attacker activity across 6 detection passes — brute-force, silent relay, local elevation, Kerberos spray, Living-off-the-Land (LOLBin) correlation, high-value standalone events, and LSASS credential dumps
 3. **Correlates** events into ranked attack chains with severity scoring and chain-type classification (`brute_force`, `credential_stuffing`, `unauthorized_access`, `credential_access`, `lateral_movement`, `defense_evasion`, `post_exploitation`)
 4. **Reports** a human-readable incident document with MITRE mappings and a Mermaid.js sequence diagram
 
@@ -108,7 +108,7 @@ Exit codes: 0 success · 1 error · 2 integrity verification failure
 | `web_access` | `/var/log/nginx/access.log` | HTTP attacks, web shells, scanning, admin access |
 | `sysmon_linux` | Linux Sysmon XML | Process creation, network connections, file deletion |
 | `evtx` | Windows `.evtx` / `wevtutil` XML | **Security/System channel:** logon/logoff (4624/4625), process creation (4688), scheduled tasks, services, Kerberos, group changes, share access |
-| | | **Sysmon channel (Microsoft-Windows-Sysmon/Operational):** process creation (EID 1), network (3), image load (7), remote thread (8), process access/LSASS (10), file created (11), registry (12/13), named pipe (17/18), WMI subscription (20/21) |
+| | | **Sysmon channel (Microsoft-Windows-Sysmon/Operational):** process creation (EID 1), network (3), image load (7), remote thread (8), process access/code injection (10), file created (11), registry (12/13), named pipe (17/18), WMI subscription (20/21) |
 
 > **Windows EVTX support** requires `python-evtx` for binary `.evtx` files: `pip install python-evtx`. Standard `wevtutil` XML exports work without it.
 
@@ -129,7 +129,7 @@ Every generated report contains:
 
 ## MITRE ATT&CK coverage
 
-The tool maps events to 40+ ATT&CK techniques across all major tactics:
+The tool maps events to 50+ ATT&CK techniques across all major tactics:
 
 **Linux (auth.log / audit.log / syslog / Sysmon):**
 
@@ -162,12 +162,12 @@ The tool maps events to 40+ ATT&CK techniques across all major tactics:
 
 | Tactic | Example techniques |
 |---|---|
-| Credential Access | T1003.001 LSASS Memory (EID 10 — PROCESS_VM_READ filtered), T1003.006 DCSync |
-| Process Injection | T1055 Process Injection (EID 8 remote thread), T1055.001 DLL Injection (EID 7 — noise filtered) |
+| Credential Access | T1003.001 LSASS Memory (EID 10 — PROCESS_VM_READ/WRITE filtered), T1003.006 DCSync |
+| Process Injection | T1055 Process Injection (EID 8 remote thread), T1055.001 DLL Injection (EID 7 — noise filtered), T1218 Living-off-the-Land (LOLBin correlation with EID 1) |
 | Persistence | T1546.003 WMI Event Subscription (EID 20/21), T1547.001 Registry Run Keys (EID 12/13) |
-| Lateral Movement | T1559.001 Named Pipe (EID 17/18), T1071 C2 via network (EID 3) |
+| Lateral Movement | T1559.001 Named Pipe (EID 17/18), T1071 C2 via network (EID 3), T1021 Remote Services (LOLBin RDP/WinRM exploitation) |
 
-Command-level mapping covers 53 tools including `wget`, `curl`, `nc`, `nmap`, `hydra`, `hashcat`, `john`, `useradd`, `tar`, `scp`, and more.
+Command-level mapping covers 60+ tools including `wget`, `curl`, `nc`, `nmap`, `hydra`, `hashcat`, `john`, `useradd`, `tar`, `scp`, `regsvr32`, `certutil`, `wuauclt`, `msxsl`, `sharprdp`, and LOLBin tools.
 
 ---
 
@@ -236,8 +236,8 @@ tests/
   test_evtx_real_samples.py    — cyber-logic regression suite (9 real attack samples locked)
   test_evtx_sysmon.py          — Sysmon parser regression suite (5 samples, LSASS + WMI chains)
   test_review_bugs.py          — 6-bug regression tests from code review
-  download_evtx_fixtures.py    — fetch 278 EVTX samples from sbousseaden/EVTX-ATTACK-SAMPLES
-  audit_evtx_coverage.py       — full corpus audit: 179/278 samples detected (64%)
+  download_evtx_fixtures.py    — fetch 285 EVTX samples from sbousseaden/EVTX-ATTACK-SAMPLES
+  audit_evtx_coverage.py       — full corpus audit: 240/285 samples detected (84%)
   fixtures/evtx/               — EVTX binary samples (gitignored, download separately)
 logs/              — input log files (read-only, never modified)
 data/processed/    — normalized JSON + SHA-256 hashes (generated)
