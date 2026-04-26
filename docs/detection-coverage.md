@@ -4,7 +4,7 @@ Every event type, Windows EventID, MITRE technique, and detection pathway the to
 
 ## MITRE ATT&CK Coverage Matrix
 
-**62 of ~242 parent techniques** detected across **13 of 13 tactics** (MITRE ATT&CK Enterprise v18).
+**83 of ~242 parent techniques** detected across **13 of 13 tactics** (MITRE ATT&CK Enterprise v18).
 
 !!! tip "Full interactive matrix"
     Drag [`mitre-coverage-layer.json`](mitre-coverage-layer.json) onto
@@ -19,15 +19,15 @@ Every event type, Windows EventID, MITRE technique, and detection pathway the to
 | Initial Access | **1** | 11 | 9% |
 | Execution | **7** | 17 | 41% |
 | Persistence | **8** | 23 | 35% |
-| Privilege Escalation | **1** | 14 | 7% |
-| Defense Evasion | **13** | 47 | 28% |
-| Credential Access | **9** | 17 | 53% |
-| Discovery | **8** | 34 | 24% |
+| Privilege Escalation | **2** | 14 | 14% |
+| Defense Evasion | **22** | 47 | 47% |
+| Credential Access | **12** | 17 | 71% |
+| Discovery | **13** | 34 | 38% |
 | Lateral Movement | **4** | 9 | 44% |
-| Collection | **2** | 17 | 12% |
+| Collection | **3** | 17 | 18% |
 | Command and Control | **3** | 18 | 17% |
 | Exfiltration | **1** | 9 | 11% |
-| Impact | **3** | 15 | 20% |
+| Impact | **5** | 15 | 33% |
 
 > Coverage numbers reflect `src/mitre.py`. Run `ais coverage` to regenerate after adding new detections.
 
@@ -56,6 +56,16 @@ Every event type, Windows EventID, MITRE technique, and detection pathway the to
 | 4771 | Security | Windows Kerberos PreAuth Failure | T1110 |
 | 5145 | Security | Windows Share Access | T1021.002 |
 | 7045 | System | Windows Service Installed | T1543.003 |
+| 4663 | Security | Windows Object Access (LSASS/NTDS/SAM filter) | T1003.001 |
+| 4776 | Security | Windows NTLM Auth | T1550.002 |
+| 4740 | Security | Windows Account Lockout | T1110 |
+| 4662 | Security | Windows DS Object Access (DCSync) | T1003.006 |
+| 1102 | Security | Windows Log Cleared | T1070.001 |
+| 4657 | Security | Windows Registry Modified | T1112 |
+| 4703 | Security | Windows Token Rights Adjusted | T1134 |
+| 4726 | Security | Windows Account Deleted | T1531 |
+| 4738 | Security | Windows Account Changed | T1098 |
+| 5156 | Security | Windows Network Connection (lateral ports filter) | T1021 |
 | 4689 | Security | Process Terminated | *(skipped — noise)* |
 
 ---

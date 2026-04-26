@@ -540,6 +540,50 @@ def _evtx_classify(
     if event_id == '5145':
         return 'Windows Share Access', user, ip, None
 
+    if event_id == '4663':
+        obj = data.get('ObjectName', '').lower()
+        if any(kw in obj for kw in ('lsass', 'ntds', 'sam', 'security', 'system')):
+            u = data.get('SubjectUserName') or user
+            return 'Windows Object Access', u, None, None
+
+    if event_id == '4776':
+        u = data.get('TargetUserName') or user
+        return 'Windows NTLM Auth', u, ip, None
+
+    if event_id == '4740':
+        u = data.get('TargetUserName') or user
+        return 'Windows Account Lockout', u, ip, None
+
+    if event_id == '4662':
+        u = data.get('SubjectUserName') or user
+        return 'Windows DS Object Access', u, None, None
+
+    if event_id == '1102':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Log Cleared', u, None, None
+
+    if event_id == '4657':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Registry Modified', u, None, None
+
+    if event_id == '4703':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Token Rights Adjusted', u, None, None
+
+    if event_id == '4726':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Account Deleted', u, None, None
+
+    if event_id == '4738':
+        u = data.get('SubjectUserName') or user
+        return 'Windows Account Changed', u, None, None
+
+    if event_id == '5156':
+        dest_port = data.get('DestPort', '')
+        if dest_port in ('445', '3389', '135', '5985', '5986'):
+            u = data.get('Application') or user
+            return 'Windows Network Connection', u, ip, None
+
     return 'Other', user, ip, None
 
 

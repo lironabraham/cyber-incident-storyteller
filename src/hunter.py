@@ -45,6 +45,7 @@ _SUCCESS_TYPES = {
 _FAILURE_TYPES = {
     'Failed Login', 'Invalid User', 'Auth Failure', 'Audit Auth Failure',
     'Windows Logon Failure', 'Windows Kerberos PreAuth Failure',
+    'Windows Account Lockout', 'Windows NTLM Auth',
 }
 # Authentication probes: not failures per se, but high-volume patterns are suspicious.
 _PROBE_TYPES = {
@@ -56,14 +57,26 @@ _PROBE_TYPES = {
 # High-value event types that indicate attacker activity regardless of prior failures.
 # These are inherently suspicious when they appear — especially from unexpected actors.
 _HIGH_VALUE_TYPES = {
-    'Windows Service Installed',   # T1543.003 — persistence
-    'Windows Scheduled Task',      # T1053.005 — persistence
-    'Windows Account Created',     # T1136.001 — persistence
-    'Windows Group Member Added',  # T1098     — privilege escalation
-    'Windows Share Access',        # T1021.002 — lateral movement
-    'Web Shell',                   # T1505.003 — persistence
-    'Shell Execution',             # T1059.004 — execution
-    'File Access',                 # T1003.008 — credential access
+    'Windows Service Installed',       # T1543.003 — persistence
+    'Windows Scheduled Task',          # T1053.005 — persistence
+    'Windows Account Created',         # T1136.001 — persistence
+    'Windows Group Member Added',      # T1098     — privilege escalation
+    'Windows Share Access',            # T1021.002 — lateral movement
+    'Web Shell',                       # T1505.003 — persistence
+    'Shell Execution',                 # T1059.004 — execution
+    'File Access',                     # T1003.008 — credential access
+    'Windows Object Access',           # T1003.001 — LSASS / credential dumping
+    'Windows DS Object Access',        # T1003.006 — DCSync
+    'Windows Log Cleared',             # T1070.001 — defense evasion
+    'Windows Registry Modified',       # T1112     — defense evasion / persistence
+    'Windows Token Rights Adjusted',   # T1134     — privilege escalation
+    'Windows Account Deleted',         # T1531     — impact
+    'Windows Account Changed',         # T1098     — account manipulation
+    'Windows Network Connection',      # T1021     — lateral movement (filtered to key ports)
+}
+_DEFENSE_EVASION_TYPES = {
+    'Windows Log Cleared',
+    'Windows Registry Modified',
 }
 # Subset of _HIGH_VALUE_TYPES that represent confirmed persistence actions.
 _PERSISTENCE_TYPES = {
@@ -104,6 +117,7 @@ def _classify_chain(events: list[StandardEvent]) -> tuple[str, bool]:
       credential_stuffing — failures followed by success
       post_exploitation   — (failures or silent) + success + post-exploit actions
       unauthorized_access — successful logon with no prior failures
+      defense_evasion     — log-clearing or registry tampering, no logon evidence
       lateral_movement    — high-value persistence/LM actions, no logon evidence
     """
     types = {e.event_type for e in events}
@@ -114,6 +128,7 @@ def _classify_chain(events: list[StandardEvent]) -> tuple[str, bool]:
         'Windows Process Creation', 'Windows Service Installed', 'Windows Scheduled Task',
     } & types)
     has_high_value = bool(_HIGH_VALUE_TYPES & types)
+    has_defense_evasion = bool(_DEFENSE_EVASION_TYPES & types)
 
     if has_success and has_failures and has_post_exploit:
         return 'post_exploitation', True
@@ -123,6 +138,8 @@ def _classify_chain(events: list[StandardEvent]) -> tuple[str, bool]:
         return 'post_exploitation', True   # silent compromise + post-exploitation
     if has_success:
         return 'unauthorized_access', True
+    if has_defense_evasion and not has_success:
+        return 'defense_evasion', True     # log-clearing / registry tampering = assumed compromise
     if has_high_value:
         return 'lateral_movement', True    # standalone high-value event = assumed compromise
     return 'brute_force', False

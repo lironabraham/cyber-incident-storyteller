@@ -17,13 +17,19 @@
     {
       "techniqueID": "T1003.001",
       "score": 1,
-      "comment": "cmd:procdump",
+      "comment": "Windows Object Access, cmd:procdump",
       "enabled": true
     },
     {
       "techniqueID": "T1003.003",
       "score": 1,
       "comment": "cmd:ntdsutil",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1003.006",
+      "score": 1,
+      "comment": "Windows DS Object Access",
       "enabled": true
     },
     {
@@ -35,13 +41,19 @@
     {
       "techniqueID": "T1016",
       "score": 1,
-      "comment": "cmd:ifconfig, cmd:ip",
+      "comment": "cmd:ifconfig, cmd:ip, cmd:ipconfig",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1018",
+      "score": 1,
+      "comment": "cmd:arp, cmd:ping, cmd:nbtstat",
       "enabled": true
     },
     {
       "techniqueID": "T1021",
       "score": 1,
-      "comment": "Windows Remote Logon",
+      "comment": "Windows Remote Logon, Windows Network Connection",
       "enabled": true
     },
     {
@@ -113,7 +125,7 @@
     {
       "techniqueID": "T1057",
       "score": 1,
-      "comment": "cmd:ps",
+      "comment": "cmd:ps, cmd:tasklist",
       "enabled": true
     },
     {
@@ -165,6 +177,12 @@
       "enabled": true
     },
     {
+      "techniqueID": "T1070.001",
+      "score": 1,
+      "comment": "Windows Log Cleared",
+      "enabled": true
+    },
+    {
       "techniqueID": "T1070.002",
       "score": 1,
       "comment": "cmd:shred, cmd:truncate",
@@ -209,13 +227,19 @@
     {
       "techniqueID": "T1083",
       "score": 1,
-      "comment": "cmd:find",
+      "comment": "cmd:find, cmd:dir",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1087.002",
+      "score": 1,
+      "comment": "cmd:dsquery, cmd:dsget, cmd:adfind, cmd:ldifde (+1 more)",
       "enabled": true
     },
     {
       "techniqueID": "T1098",
       "score": 1,
-      "comment": "Windows Group Member Added, cmd:usermod",
+      "comment": "Windows Group Member Added, Windows Account Changed, cmd:usermod",
       "enabled": true
     },
     {
@@ -227,7 +251,7 @@
     {
       "techniqueID": "T1110",
       "score": 1,
-      "comment": "Failed Login, Auth Failure, Audit Auth Failure, Windows Kerberos PreAuth Failure",
+      "comment": "Failed Login, Auth Failure, Audit Auth Failure, Windows Kerberos PreAuth Failure (+1 more)",
       "enabled": true
     },
     {
@@ -245,13 +269,31 @@
     {
       "techniqueID": "T1112",
       "score": 1,
-      "comment": "cmd:reg, cmd:regedit",
+      "comment": "Windows Registry Modified, cmd:reg, cmd:regedit",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1115",
+      "score": 1,
+      "comment": "cmd:clip",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1124",
+      "score": 1,
+      "comment": "cmd:w32tm",
       "enabled": true
     },
     {
       "techniqueID": "T1132.001",
       "score": 1,
       "comment": "cmd:base64",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1134",
+      "score": 1,
+      "comment": "Windows Token Rights Adjusted",
       "enabled": true
     },
     {
@@ -279,9 +321,51 @@
       "enabled": true
     },
     {
+      "techniqueID": "T1201",
+      "score": 1,
+      "comment": "cmd:chage",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.001",
+      "score": 1,
+      "comment": "cmd:hh",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.003",
+      "score": 1,
+      "comment": "cmd:cmstp",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.004",
+      "score": 1,
+      "comment": "cmd:installutil",
+      "enabled": true
+    },
+    {
       "techniqueID": "T1218.005",
       "score": 1,
       "comment": "cmd:mshta",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.007",
+      "score": 1,
+      "comment": "cmd:msiexec",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.008",
+      "score": 1,
+      "comment": "cmd:odbcconf",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1218.009",
+      "score": 1,
+      "comment": "cmd:regasm, cmd:regsvcs",
       "enabled": true
     },
     {
@@ -303,6 +387,18 @@
       "enabled": true
     },
     {
+      "techniqueID": "T1482",
+      "score": 1,
+      "comment": "cmd:nltest",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1485",
+      "score": 1,
+      "comment": "cmd:cipher, cmd:sdelete",
+      "enabled": true
+    },
+    {
       "techniqueID": "T1489",
       "score": 1,
       "comment": "Service Stopped",
@@ -321,9 +417,15 @@
       "enabled": true
     },
     {
+      "techniqueID": "T1529",
+      "score": 1,
+      "comment": "cmd:shutdown",
+      "enabled": true
+    },
+    {
       "techniqueID": "T1531",
       "score": 1,
-      "comment": "cmd:passwd",
+      "comment": "Windows Account Deleted, cmd:passwd",
       "enabled": true
     },
     {
@@ -347,7 +449,19 @@
     {
       "techniqueID": "T1550.002",
       "score": 1,
-      "comment": "Windows Explicit Credential Use",
+      "comment": "Windows Explicit Credential Use, Windows NTLM Auth",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1552",
+      "score": 1,
+      "comment": "cmd:cmdkey",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1555",
+      "score": 1,
+      "comment": "cmd:vaultcmd",
       "enabled": true
     },
     {
@@ -366,6 +480,18 @@
       "techniqueID": "T1560.001",
       "score": 1,
       "comment": "cmd:tar, cmd:zip, cmd:gzip",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1562.002",
+      "score": 1,
+      "comment": "cmd:auditpol, cmd:wevtutil",
+      "enabled": true
+    },
+    {
+      "techniqueID": "T1564.001",
+      "score": 1,
+      "comment": "cmd:attrib",
       "enabled": true
     },
     {
