@@ -536,10 +536,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#phase-4-multi-log-correlation" class="md-nav__link">
+  <a href="#phase-4-living-off-the-land-lolbin-detection-done" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 4 — Multi-Log Correlation
+        Phase 4 — Living-off-the-Land (LOLBin) Detection ✓ DONE
       
     </span>
   </a>
@@ -647,10 +647,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#phase-4-multi-log-correlation" class="md-nav__link">
+  <a href="#phase-4-living-off-the-land-lolbin-detection-done" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 4 — Multi-Log Correlation
+        Phase 4 — Living-off-the-Land (LOLBin) Detection ✓ DONE
       
     </span>
   </a>
@@ -748,14 +748,15 @@
 for single-host Linux and Windows EVTX analysis. The roadmap expands coverage toward
 multi-host campaign correlation and cloud-native log sources.</p>
 <hr />
-<h2 id="phase-4-multi-log-correlation">Phase 4 — Multi-Log Correlation</h2>
-<p>Correlate events across multiple log files from the same host into a single unified attack
-timeline. Today each <code>ais analyze</code> run operates on one file; Phase 4 merges auth.log,
-audit.log, and syslog into one campaign view.</p>
-<p><strong>Key additions:</strong>
-- Single <code>ais analyze --multi</code> flag accepting a directory of log files
-- Cross-source event deduplication and timeline merging
-- Unified attack chain spanning SSH brute-force (auth.log) → shell (audit.log) → persistence (syslog)</p>
+<h2 id="phase-4-living-off-the-land-lolbin-detection-done">Phase 4 — Living-off-the-Land (LOLBin) Detection ✓ DONE</h2>
+<p>Detect and correlate suspicious Living-off-the-Land (LOLBin) process executions with follow-on attacker activity.</p>
+<p><strong>Completed:</strong>
+- Pass 4.5 LOLBin correlation engine in <code>hunter.py</code> — correlates Sysmon Process Created events (EID 1) where <code>is_lolbin=True</code> with follow-on events (network, registry write, process access, child process) within 60-second window
+- <code>is_lolbin</code> field on <code>StandardEvent</code> — set when MITRE technique is T1218.<em>, T1021.</em>, T1140, T1197, T1220, or T1047
+- Expanded <code>SUSPICIOUS_COMMANDS</code> in <code>mitre.py</code> with 20+ LOLBin entries: <code>sharprdp</code>, <code>pcalua</code>, <code>wuauclt</code>, <code>msxsl</code>, <code>appcmd</code>, <code>wsmprovhost</code>, <code>sqlcmd</code>, and more
+- Expanded <code>_PERSISTENCE_KEY_RE</code> in <code>sysmon_evtx.py</code> covering 20+ registry key patterns (IFEO, KnownDLLs, COM hijacking, CLR profiler, GPO scripts, LSA packages, UAC policies, input hooks)
+- EID 10 code-injection detection — passes events with <code>PROCESS_VM_WRITE (0x0020)</code> to catch shellcode injection into arbitrary targets
+- Coverage improvement: 240/285 samples detected (84%), up from 179/278 (65%)</p>
 <hr />
 <h2 id="phase-5-expanded-windows-eventid-coverage">Phase 5 — Expanded Windows EventID Coverage</h2>
 <p>Add the Windows EventIDs most commonly seen in enterprise DFIR engagements that are not
