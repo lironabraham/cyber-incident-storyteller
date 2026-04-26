@@ -111,6 +111,8 @@ def _compute_severity(
         return 'medium'
 
     # ── Windows EVTX ──────────────────────────────────────────────────────────
+    if event_type in ('Windows NewCredentials Logon', 'Windows Local Relay Logon'):
+        return 'high'   # token impersonation / self-relay — always suspicious
     if event_type == 'Windows Logon Failure':
         if failures >= 20:
             return 'high'
@@ -133,6 +135,20 @@ def _compute_severity(
         return 'low'
     if event_type == 'Windows Share Access':
         return 'low'
+
+    # ── Windows Sysmon EVTX ───────────────────────────────────────────────────
+    if event_type == 'Sysmon Process Access':
+        return 'critical'   # LSASS memory read — noise filtered in sysmon_evtx.py
+    if event_type in ('Sysmon Remote Thread', 'Sysmon WMI Subscription'):
+        return 'high'
+    if event_type in ('Sysmon Image Loaded', 'Sysmon Registry Key Modified',
+                      'Sysmon Registry Value Modified', 'Sysmon Named Pipe Created',
+                      'Sysmon Named Pipe Connected'):
+        return 'medium'
+    if event_type == 'Sysmon Network Connection':
+        return 'low'
+    if event_type in ('Sysmon Process Created', 'Sysmon File Created'):
+        return 'info'   # Sysmon Process Created upgraded via map_command() in ingest()
 
     return 'low'
 
@@ -207,6 +223,10 @@ def _action_taken(event_type: str, user: str | None, ip: str | None, raw: str) -
         return f"Windows interactive logon for '{u}'"
     if event_type == 'Windows Remote Logon':
         return f"Windows remote/network logon for '{u}' from {s}"
+    if event_type == 'Windows NewCredentials Logon':
+        return f"NewCredentials logon (LogonType 9) — token impersonation for '{u}'"
+    if event_type == 'Windows Local Relay Logon':
+        return f"Local relay logon for '{u}' — possible Kerberos/NTLM self-relay attack"
     if event_type == 'Windows Logon Failure':
         return f"Windows logon failure for '{u}' from {s}"
     if event_type == 'Windows Explicit Credential Use':

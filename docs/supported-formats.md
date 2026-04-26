@@ -117,11 +117,11 @@ pip install python-evtx
 
 XML exports from `wevtutil qe` work without the extra dependency.
 
-**Covered EventIDs:**
+**Security / System channel EventIDs:**
 
 | EventID | Channel | Detects |
 |---|---|---|
-| 4624 | Security | Logon success (interactive, remote, batch) |
+| 4624 | Security | Logon success — interactive, remote, batch; **LogonType 9** (token impersonation → `Windows NewCredentials Logon`); **LogonType 3/10 from localhost** (self-relay → `Windows Local Relay Logon`) |
 | 4625 | Security | Logon failure — password brute force |
 | 4648 | Security | Explicit credential use — pass-the-hash indicator |
 | 4672 | Security | Special privileges assigned |
@@ -134,9 +134,33 @@ XML exports from `wevtutil qe` work without the extra dependency.
 | 4771 | Security | Kerberos pre-authentication failure — spray indicator |
 | 5145 | Security | Network share access |
 
+**Windows Sysmon channel (Microsoft-Windows-Sysmon/Operational):**
+
+Sysmon events are automatically detected by provider name and routed to a dedicated parser. No extra `--fmt` flag needed — pass `--fmt evtx` as normal.
+
+| Sysmon EID | Event type | MITRE | Notes |
+|---|---|---|---|
+| 1 | Sysmon Process Created | — | command mapped per `map_command()` |
+| 3 | Sysmon Network Connection | T1071 | |
+| 7 | Sysmon Image Loaded | T1055.001 | filtered to credential-dumping DLLs only |
+| 8 | Sysmon Remote Thread | T1055 | process injection |
+| 10 | Sysmon Process Access | T1003.001 | LSASS only (PROCESS_VM_READ bit required) |
+| 11 | Sysmon File Created | — | |
+| 12 | Sysmon Registry Key Modified | T1547.001 | autorun / persistence keys only |
+| 13 | Sysmon Registry Value Modified | T1547.001 | autorun / persistence keys only |
+| 17 | Sysmon Named Pipe Created | T1559.001 | |
+| 18 | Sysmon Named Pipe Connected | T1559.001 | |
+| 20 | Sysmon WMI Subscription | T1546.003 | |
+| 21 | Sysmon WMI Subscription | T1546.003 | |
+
+> EID 2 (file creation time changed), 4/5 (process terminated), 6 (driver loaded), 9 (raw disk access) and config-change events are intentionally skipped as noise.
+
 ```bash
-# Binary .evtx (requires python-evtx)
+# Binary .evtx — Security/System channel (requires python-evtx)
 ais analyze logs/security.evtx --fmt evtx
+
+# Binary .evtx — Sysmon channel (same flag, provider auto-detected)
+ais analyze logs/sysmon.evtx --fmt evtx
 
 # wevtutil XML export (no extra dependency)
 wevtutil qe Security /f:XML > security.xml

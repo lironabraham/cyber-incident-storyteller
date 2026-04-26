@@ -42,6 +42,8 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     # ── Windows EVTX ──────────────────────────────────────────────────────────
     'Windows Logon Success':           ('T1078',     'Valid Accounts'),
     'Windows Remote Logon':            ('T1021',     'Remote Services'),
+    'Windows NewCredentials Logon':    ('T1078',     'Valid Accounts'),
+    'Windows Local Relay Logon':       ('T1021',     'Remote Services'),
     'Windows Logon Failure':           ('T1110.001', 'Brute Force: Password Guessing'),
     'Windows Explicit Credential Use': ('T1550.002', 'Use Alternate Authentication Material: Pass the Hash'),
     'Windows Privilege Assigned':      ('T1078.002', 'Valid Accounts: Domain Accounts'),
@@ -65,9 +67,34 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     'Windows Account Deleted':        ('T1531',     'Account Access Removal'),
     'Windows Account Changed':        ('T1098',     'Account Manipulation'),
     'Windows Network Connection':     ('T1021',     'Remote Services'),
+    # ── Windows Sysmon EVTX ───────────────────────────────────────────────────
+    'Sysmon Process Created':        (None, None),     # resolved per-command via map_command()
+    'Sysmon Network Connection':     ('T1071',     'Application Layer Protocol'),
+    'Sysmon Image Loaded':           ('T1055.001', 'Process Injection: DLL Injection'),
+    'Sysmon Remote Thread':          ('T1055',     'Process Injection'),
+    'Sysmon Process Access':         ('T1003.001', 'OS Credential Dumping: LSASS Memory'),
+    'Sysmon File Created':           (None, None),     # context-dependent
+    'Sysmon Registry Key Modified':  ('T1547.001', 'Boot or Logon Autostart: Registry Run Keys'),
+    'Sysmon Registry Value Modified':('T1547.001', 'Boot or Logon Autostart: Registry Run Keys'),
+    'Sysmon Named Pipe Created':     ('T1559.001', 'Inter-Process Communication: COM'),
+    'Sysmon Named Pipe Connected':   ('T1559.001', 'Inter-Process Communication: COM'),
+    'Sysmon WMI Subscription':       ('T1546.003', 'Event Triggered Execution: WMI Event Subscription'),
     # ── catch-all ─────────────────────────────────────────────────────────────
     'Other':              (None, None),
 }
+
+# DLL basenames that are high-signal when loaded from an unexpected process.
+# Used by sysmon_evtx.py to filter EventID 7 (Image Loaded) noise.
+SUSPICIOUS_DLLS: frozenset[str] = frozenset({
+    # AMSI bypass targets
+    'amsi.dll',
+    # Credential dumping (Mimikatz targets)
+    'cryptdll.dll', 'samsrv.dll', 'lsasrv.dll', 'wdigest.dll', 'kerberos.dll',
+    # NTLM credential material
+    'ntlm.dll', 'msv1_0.dll',
+    # SAM access
+    'samlib.dll',
+})
 
 SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
     # ── Ingress / C2 ──────────────────────────────────────────────────────────

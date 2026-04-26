@@ -484,6 +484,13 @@ def _evtx_classify(
 
     if event_id == '4624':
         lt = data.get('LogonType', '0')
+        # LogonType 9 = CreateProcessWithLogonW / NewCredentials — token impersonation
+        if lt == '9':
+            return 'Windows NewCredentials Logon', user, None, None
+        # LogonType 3/10 from a local/null IP = self-relay (KrbRelayUp, NTLM-relay-to-self)
+        raw_ip = data.get('IpAddress', '') or data.get('WorkstationName', '') or ''
+        if lt in ('3', '10') and raw_ip in _EVTX_NULL_VALUES:
+            return 'Windows Local Relay Logon', user, None, None
         if lt in ('3', '10'):
             return 'Windows Remote Logon', user, ip, None
         return 'Windows Logon Success', user, ip, None
@@ -612,6 +619,15 @@ def _parse_evtx_record(xml_str: str) -> dict | None:
 
     hostname = root.findtext('System/Computer') or ''
     data = _evtx_extract_event_data(root)
+
+    # Dispatch Sysmon channel records to the dedicated Sysmon parser.
+    provider_elem = root.find('System/Provider')
+    provider_name = provider_elem.get('Name', '') if provider_elem is not None else ''
+    if 'Sysmon' in provider_name:
+        from sysmon_evtx import extract_record as _sysmon_extract
+        eid_int = int(event_id) if event_id.isdigit() else 0
+        return _sysmon_extract(eid_int, data, hostname, timestamp, xml_str)
+
     event_type, user, source_ip, command = _evtx_classify(event_id, data)
 
     if event_type == 'Other':

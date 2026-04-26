@@ -36,54 +36,57 @@ from parser import parse_log  # noqa: E402
 
 # ── Fixture registry ───────────────────────────────────────────────────────────
 
-_FIXTURE_DIR = Path(__file__).parent / 'fixtures' / 'evtx'
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).parent))
+from download_evtx_fixtures import local_path as _local_path  # noqa: E402
 
-# Each entry: (filename, expected_event_types, description)
+# Each entry: (repo_path, expected_event_types, description)
+# repo_path matches the subfolder structure in download_evtx_fixtures.ALL_SAMPLES
 _SAMPLES: list[tuple[str, set[str], str]] = [
     (
-        'CA_4624_4625_LogonType2_LogonProc_chrome.evtx',
+        'Credential Access/CA_4624_4625_LogonType2_LogonProc_chrome.evtx',
         {'Windows Logon Success', 'Windows Logon Failure'},
         'Interactive logon success/failure (4624 type 2, 4625)',
     ),
     (
-        'kerberos_pwd_spray_4771.evtx',
+        'Credential Access/kerberos_pwd_spray_4771.evtx',
         {'Windows Kerberos PreAuth Failure'},
         'Kerberos password spray — pre-auth failures (4771)',
     ),
     (
-        'temp_scheduled_task_4698_4699.evtx',
+        'Execution/temp_scheduled_task_4698_4699.evtx',
         {'Windows Scheduled Task'},
         'Scheduled task created via LOLBin execution (4698)',
     ),
     (
-        'NTLM2SelfRelay-med0x2e-security_4624_4688.evtx',
+        'Privilege Escalation/NTLM2SelfRelay-med0x2e-security_4624_4688.evtx',
         {'Windows Remote Logon', 'Windows Process Creation'},
         'NTLM self-relay PrivEsc — network logon + process creation (4624/4688)',
     ),
     (
-        'PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx',
+        'Privilege Escalation/PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx',
         {'Windows Share Access'},
         'Local SMB share access during privilege escalation (5145)',
     ),
     (
-        'LM_Remote_Service02_7045.evtx',
+        'Lateral Movement/LM_Remote_Service02_7045.evtx',
         {'Windows Service Installed'},
         'Remote service installation via lateral movement (7045)',
     ),
     (
-        'Network_Service_Guest_added_to_admins_4732.evtx',
+        'Persistence/Network_Service_Guest_added_to_admins_4732.evtx',
         {'Windows Group Member Added'},
         'Guest account added to Administrators group (4732)',
     ),
 ]
 
 
-def _fixture(filename: str) -> Path:
+def _fixture(repo_path: str) -> Path:
     """Return fixture path, skipping the test if the file is not present."""
-    path = _FIXTURE_DIR / filename
+    path = _local_path(repo_path)
     if not path.exists():
         pytest.skip(
-            f'{filename} not found — run: py tests/download_evtx_fixtures.py'
+            f'{Path(repo_path).name} not found — run: py tests/download_evtx_fixtures.py'
         )
     return path
 
@@ -145,7 +148,7 @@ class TestRealEvtxMitreMapping:
     def test_kerberos_spray_maps_to_t1110(self, tmp_path):
         from ingest import ingest
         events = ingest(
-            _fixture('kerberos_pwd_spray_4771.evtx'),
+            _fixture('Credential Access/kerberos_pwd_spray_4771.evtx'),
             fmt='evtx',
             processed_dir=tmp_path / 'proc',
         )
@@ -159,7 +162,7 @@ class TestRealEvtxMitreMapping:
     def test_scheduled_task_maps_to_t1053(self, tmp_path):
         from ingest import ingest
         events = ingest(
-            _fixture('temp_scheduled_task_4698_4699.evtx'),
+            _fixture('Execution/temp_scheduled_task_4698_4699.evtx'),
             fmt='evtx',
             processed_dir=tmp_path / 'proc',
         )
@@ -173,7 +176,7 @@ class TestRealEvtxMitreMapping:
     def test_lateral_movement_service_maps_to_t1543(self, tmp_path):
         from ingest import ingest
         events = ingest(
-            _fixture('LM_Remote_Service02_7045.evtx'),
+            _fixture('Lateral Movement/LM_Remote_Service02_7045.evtx'),
             fmt='evtx',
             processed_dir=tmp_path / 'proc',
         )
@@ -195,7 +198,7 @@ class TestRealEvtxFullPipeline:
         from reporter import generate_report
 
         events = ingest(
-            _fixture('NTLM2SelfRelay-med0x2e-security_4624_4688.evtx'),
+            _fixture('Privilege Escalation/NTLM2SelfRelay-med0x2e-security_4624_4688.evtx'),
             fmt='evtx',
             processed_dir=tmp_path / 'proc',
         )
@@ -221,7 +224,7 @@ class TestRealEvtxFullPipeline:
 #   techniques   — MITRE IDs that must appear in the chain (subset check)
 #   note         — known detection gap / why certain real techniques are absent
 _CHAIN_GROUND_TRUTH: dict[str, dict] = {
-    'CA_4624_4625_LogonType2_LogonProc_chrome.evtx': {
+    'Credential Access/CA_4624_4625_LogonType2_LogonProc_chrome.evtx': {
         'chain_type':  'credential_stuffing',
         'compromised': True,
         'techniques':  {'T1110.001', 'T1078'},
@@ -231,7 +234,7 @@ _CHAIN_GROUND_TRUTH: dict[str, dict] = {
             'as credential stuffing, which is the correct conservative assessment.'
         ),
     },
-    'kerberos_pwd_spray_4771.evtx': {
+    'Credential Access/kerberos_pwd_spray_4771.evtx': {
         'chain_type':  'brute_force',
         'compromised': False,
         'techniques':  {'T1558', 'T1110'},
@@ -241,19 +244,19 @@ _CHAIN_GROUND_TRUTH: dict[str, dict] = {
             '(Brute Force parent) is what 4771 pre-auth failures map to.'
         ),
     },
-    'LM_Remote_Service02_7045.evtx': {
+    'Lateral Movement/LM_Remote_Service02_7045.evtx': {
         'chain_type':  'lateral_movement',
         'compromised': True,
         'techniques':  {'T1543.003'},
         'note': 'Actor has no IP attribution in this sample — anonymous chain.',
     },
-    'Network_Service_Guest_added_to_admins_4732.evtx': {
+    'Persistence/Network_Service_Guest_added_to_admins_4732.evtx': {
         'chain_type':  'lateral_movement',
         'compromised': True,
         'techniques':  {'T1098'},
         'note': 'T1098 (Account Manipulation) — group membership change.',
     },
-    'NTLM2SelfRelay-med0x2e-security_4624_4688.evtx': {
+    'Privilege Escalation/NTLM2SelfRelay-med0x2e-security_4624_4688.evtx': {
         'chain_type':  'unauthorized_access',
         'compromised': True,
         'techniques':  {'T1021'},
@@ -264,17 +267,36 @@ _CHAIN_GROUND_TRUTH: dict[str, dict] = {
             'not yet implemented.'
         ),
     },
-    'PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx': {
+    'Privilege Escalation/PrivEsc_NetSvc_SessionToken_Retrival_via_localSMB_Auth_5145.evtx': {
         'chain_type':  'lateral_movement',
         'compromised': True,
         'techniques':  {'T1021.002'},
         'note': 'SMB share access by machine account — lateral movement indicator.',
     },
-    'temp_scheduled_task_4698_4699.evtx': {
+    'Execution/temp_scheduled_task_4698_4699.evtx': {
         'chain_type':  'lateral_movement',
         'compromised': True,
         'techniques':  {'T1053.005'},
         'note': 'Scheduled task created quickly and deleted — Atexec indicator.',
+    },
+    'Privilege Escalation/Invoke_TokenDuplication_UAC_Bypass4624.evtx': {
+        'chain_type':  'unauthorized_access',
+        'compromised': True,
+        'techniques':  {'T1078'},
+        'note': (
+            'Local logon (LogonType 2) + 4672 Special Privileges — UAC token '
+            'duplication. No network IP; detected via Pass 2.5 elevation correlation.'
+        ),
+    },
+    'Privilege Escalation/privesc_KrbRelayUp_windows_4624.evtx': {
+        'chain_type':  'unauthorized_access',
+        'compromised': True,
+        'techniques':  {'T1021'},
+        'note': (
+            'KrbRelayUp: remote logon from localhost + Windows Privilege Assigned. '
+            'IP is null/local so Pass 2 misses it; Pass 2.5 elevation correlation '
+            'catches the 4624+4672 same-user pairing.'
+        ),
     },
 }
 

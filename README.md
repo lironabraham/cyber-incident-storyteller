@@ -12,13 +12,15 @@ Drop in a log file, get back a Markdown report with a timeline, MITRE ATT&CK tec
 
 ## What it does
 
-1. **Parses** Linux host logs into a normalized event stream
-2. **Hunts** for attacker IPs using a Trigger-Pivot algorithm — finds brute-force sources, then follows everything they touched
-3. **Correlates** events into ranked attack chains with severity scoring
+1. **Parses** Linux host logs and Windows EVTX files (Security, System, and Sysmon channels) into a normalized event stream
+2. **Hunts** for attacker activity across 6 detection passes — brute-force, silent relay, local elevation, Kerberos spray, high-value standalone events, and LSASS credential dumps
+3. **Correlates** events into ranked attack chains with severity scoring and chain-type classification (`brute_force`, `credential_stuffing`, `unauthorized_access`, `credential_access`, `lateral_movement`, `defense_evasion`, `post_exploitation`)
 4. **Reports** a human-readable incident document with MITRE mappings and a Mermaid.js sequence diagram
 
 ```
-logs/auth.log  ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
+logs/auth.log      ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
+security.evtx      ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
+sysmon_events.evtx ──►  parse  ──►  ingest  ──►  hunt  ──►  report.md
 ```
 
 ---
@@ -105,7 +107,8 @@ Exit codes: 0 success · 1 error · 2 integrity verification failure
 | `audit_log` | `/var/log/audit/audit.log` | Process execution, shell spawns, credential file access |
 | `web_access` | `/var/log/nginx/access.log` | HTTP attacks, web shells, scanning, admin access |
 | `sysmon_linux` | Linux Sysmon XML | Process creation, network connections, file deletion |
-| `evtx` | Windows `.evtx` / `wevtutil` XML | Logon/logoff, process creation, scheduled tasks, services, Kerberos, group changes, share access |
+| `evtx` | Windows `.evtx` / `wevtutil` XML | **Security/System channel:** logon/logoff (4624/4625), process creation (4688), scheduled tasks, services, Kerberos, group changes, share access |
+| | | **Sysmon channel (Microsoft-Windows-Sysmon/Operational):** process creation (EID 1), network (3), image load (7), remote thread (8), process access/LSASS (10), file created (11), registry (12/13), named pipe (17/18), WMI subscription (20/21) |
 
 > **Windows EVTX support** requires `python-evtx` for binary `.evtx` files: `pip install python-evtx`. Standard `wevtutil` XML exports work without it.
 
@@ -144,16 +147,25 @@ The tool maps events to 40+ ATT&CK techniques across all major tactics:
 | Exfiltration | T1048 Alt Protocol (scp/ftp/rsync) |
 | C2 | T1071 Application Layer Protocol |
 
-**Windows EVTX (4624/4625/4688/4698/4699/4702/4720/4728/4732/4768/4769/4771/5145/7045):**
+**Windows EVTX — Security/System channel:**
 
 | Tactic | Example techniques |
 |---|---|
-| Initial Access | T1078 Valid Accounts |
-| Credential Access | T1110 Brute Force, T1110.001 Password Guessing, T1558 Steal/Forge Kerberos Tickets |
+| Initial Access | T1078 Valid Accounts, T1134 Access Token Manipulation |
+| Credential Access | T1110 Brute Force, T1110.001 Password Guessing, T1558 Steal/Forge Kerberos Tickets, T1550.002 Pass the Hash |
 | Execution | T1053.005 Scheduled Task/Job, T1059 Command Interpreter |
 | Persistence | T1053.005 Scheduled Task, T1543.003 Windows Service, T1136.001 Create Account |
-| Privilege Escalation | T1098 Account Manipulation, T1548 Abuse Elevation |
+| Privilege Escalation | T1098 Account Manipulation, T1078 Valid Accounts (LogonType 9 / local relay) |
 | Lateral Movement | T1021 Remote Services, T1021.002 SMB/Windows Admin Shares |
+
+**Windows EVTX — Sysmon channel (12 EventIDs):**
+
+| Tactic | Example techniques |
+|---|---|
+| Credential Access | T1003.001 LSASS Memory (EID 10 — PROCESS_VM_READ filtered), T1003.006 DCSync |
+| Process Injection | T1055 Process Injection (EID 8 remote thread), T1055.001 DLL Injection (EID 7 — noise filtered) |
+| Persistence | T1546.003 WMI Event Subscription (EID 20/21), T1547.001 Registry Run Keys (EID 12/13) |
+| Lateral Movement | T1559.001 Named Pipe (EID 17/18), T1071 C2 via network (EID 3) |
 
 Command-level mapping covers 53 tools including `wget`, `curl`, `nc`, `nmap`, `hydra`, `hashcat`, `john`, `useradd`, `tar`, `scp`, and more.
 
@@ -207,11 +219,12 @@ py -m pytest tests/ --cov=src
 ```
 src/
   storyteller.py   — CLI entrypoint (ais analyze / verify / demo)
-  parser.py        — log parsers (6 formats, incl. Windows EVTX)
+  parser.py        — log parsers (6 formats, incl. Windows EVTX); dispatches Sysmon channel
+  sysmon_evtx.py   — Windows Sysmon EVTX parser (12 EventIDs, LSASS + DLL noise filters)
   schema.py        — StandardEvent dataclass + TypedDicts
   ingest.py        — normalization, severity scoring, SHA-256 hashing
-  mitre.py         — MITRE ATT&CK lookup (40+ techniques, 53 commands)
-  hunter.py        — Trigger-Pivot engine (4 detection pathways)
+  mitre.py         — MITRE ATT&CK lookup (40+ techniques, 53 commands, SUSPICIOUS_DLLS)
+  hunter.py        — Trigger-Pivot engine (6 detection passes, 7 chain types)
   reporter.py      — Markdown + Mermaid report generator
   generate_lab.py  — synthetic attack log generators (Linux + Windows)
   __init__.py      — public library API
@@ -219,10 +232,13 @@ src/
 pyproject.toml     — pip-installable package (ais-storyteller)
 Dockerfile         — multi-stage build, ENTRYPOINT ais
 tests/
-  test_*.py                — unit + integration tests
-  test_evtx_real_samples.py — cyber-logic regression suite (real attack samples)
-  download_evtx_fixtures.py — fetch EVTX samples from sbousseaden/EVTX-ATTACK-SAMPLES
-  fixtures/evtx/           — EVTX binary samples (gitignored, download separately)
+  test_*.py                    — unit + integration tests
+  test_evtx_real_samples.py    — cyber-logic regression suite (9 real attack samples locked)
+  test_evtx_sysmon.py          — Sysmon parser regression suite (5 samples, LSASS + WMI chains)
+  test_review_bugs.py          — 6-bug regression tests from code review
+  download_evtx_fixtures.py    — fetch 278 EVTX samples from sbousseaden/EVTX-ATTACK-SAMPLES
+  audit_evtx_coverage.py       — full corpus audit: 179/278 samples detected (64%)
+  fixtures/evtx/               — EVTX binary samples (gitignored, download separately)
 logs/              — input log files (read-only, never modified)
 data/processed/    — normalized JSON + SHA-256 hashes (generated)
 reports/           — generated incident reports (generated)
