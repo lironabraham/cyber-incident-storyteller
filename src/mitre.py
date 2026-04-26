@@ -2,7 +2,18 @@
 Local MITRE ATT&CK mapping for known event types and suspicious commands.
 
 No external API calls — purely dictionary-based for offline/air-gapped use.
+
+This module serves as a re-export shim for backward compatibility:
+- MITRE_MAP and map_event() remain here (event type → technique)
+- SUSPICIOUS_COMMANDS and map_command() are re-exported from lolbins module
+- SUSPICIOUS_DLLS is re-exported from signature_filters module
 """
+
+# Re-export command mapping and DLL filters for backward compatibility
+from lolbins import SUSPICIOUS_COMMANDS, map_command
+from signature_filters import SUSPICIOUS_DLLS
+
+__all__ = ['MITRE_MAP', 'map_event', 'SUSPICIOUS_COMMANDS', 'map_command', 'SUSPICIOUS_DLLS']
 
 MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     # ── auth.log ───────────────────────────────────────────────────────────────
@@ -94,181 +105,7 @@ MITRE_MAP: dict[str, tuple[str | None, str | None]] = {
     'Other':              (None, None),
 }
 
-# DLL basenames that are high-signal when loaded from an unexpected process.
-# Used by sysmon_evtx.py to filter EventID 7 (Image Loaded) noise.
-SUSPICIOUS_DLLS: frozenset[str] = frozenset({
-    # AMSI bypass targets
-    'amsi.dll',
-    # Credential dumping (Mimikatz targets)
-    'cryptdll.dll', 'samsrv.dll', 'lsasrv.dll', 'wdigest.dll', 'kerberos.dll',
-    # NTLM credential material
-    'ntlm.dll', 'msv1_0.dll',
-    # SAM access
-    'samlib.dll',
-})
-
-SUSPICIOUS_COMMANDS: dict[str, tuple[str, str]] = {
-    # ── Ingress / C2 ──────────────────────────────────────────────────────────
-    'wget':      ('T1105',     'Ingress Tool Transfer'),
-    'curl':      ('T1105',     'Ingress Tool Transfer'),
-    # ── Execution ─────────────────────────────────────────────────────────────
-    'nc':        ('T1059',     'Command and Script Interpreter'),
-    'ncat':      ('T1059',     'Command and Script Interpreter'),
-    'netcat':    ('T1059',     'Command and Script Interpreter'),
-    'socat':     ('T1071',     'Application Layer Protocol'),
-    'python':    ('T1059.006', 'Python'),
-    'python3':   ('T1059.006', 'Python'),
-    'perl':      ('T1059',     'Command and Script Interpreter'),
-    'ruby':      ('T1059',     'Command and Script Interpreter'),
-    'php':       ('T1059',     'Command and Script Interpreter'),
-    'bash':      ('T1059.004', 'Unix Shell'),
-    'sh':        ('T1059.004', 'Unix Shell'),
-    # ── Defense Evasion ───────────────────────────────────────────────────────
-    'shred':     ('T1070.002', 'Indicator Removal: Clear Linux Logs'),
-    'truncate':  ('T1070.002', 'Indicator Removal: Clear Linux Logs'),
-    'history':   ('T1070.003', 'Indicator Removal: Clear Command History'),
-    'unset':     ('T1070.003', 'Indicator Removal: Clear Command History'),
-    'auditpol':  ('T1562.002', 'Impair Defenses: Disable Windows Event Logging'),
-    'wevtutil':  ('T1562.002', 'Impair Defenses: Disable Windows Event Logging'),
-    'chmod':     ('T1222',     'File and Directory Permissions Modification'),
-    'attrib':    ('T1564.001', 'Hide Artifacts: Hidden Files and Directories'),
-    'hh':        ('T1218.001', 'System Binary Proxy Execution: Compiled HTML File'),
-    'cmstp':     ('T1218.003', 'System Binary Proxy Execution: CMSTP'),
-    'installutil':('T1218.004','System Binary Proxy Execution: InstallUtil'),
-    'msiexec':   ('T1218.007', 'System Binary Proxy Execution: Msiexec'),
-    'odbcconf':  ('T1218.008', 'System Binary Proxy Execution: Odbcconf'),
-    'regasm':    ('T1218.009', 'System Binary Proxy Execution: Regasm and Regsvcs'),
-    'regsvcs':   ('T1218.009', 'System Binary Proxy Execution: Regasm and Regsvcs'),
-    # ── Discovery ─────────────────────────────────────────────────────────────
-    'whoami':    ('T1033',     'System Owner/User Discovery'),
-    'id':        ('T1033',     'System Owner/User Discovery'),
-    'uname':     ('T1082',     'System Information Discovery'),
-    'hostname':  ('T1082',     'System Information Discovery'),
-    'ps':        ('T1057',     'Process Discovery'),
-    'tasklist':  ('T1057',     'Process Discovery'),
-    'netstat':   ('T1049',     'System Network Connections Discovery'),
-    'ss':        ('T1049',     'System Network Connections Discovery'),
-    'ifconfig':  ('T1016',     'System Network Configuration Discovery'),
-    'ip':        ('T1016',     'System Network Configuration Discovery'),
-    'ipconfig':  ('T1016',     'System Network Configuration Discovery'),
-    'find':      ('T1083',     'File and Directory Discovery'),
-    'dir':       ('T1083',     'File and Directory Discovery'),
-    'nmap':      ('T1046',     'Network Service Scanning'),
-    'masscan':   ('T1046',     'Network Service Scanning'),
-    'dsquery':   ('T1087.002', 'Account Discovery: Domain Account'),
-    'dsget':     ('T1087.002', 'Account Discovery: Domain Account'),
-    'adfind':    ('T1087.002', 'Account Discovery: Domain Account'),
-    'ldifde':    ('T1087.002', 'Account Discovery: Domain Account'),
-    'csvde':     ('T1087.002', 'Account Discovery: Domain Account'),
-    'nltest':    ('T1482',     'Domain Trust Discovery'),
-    'arp':       ('T1018',     'Remote System Discovery'),
-    'ping':      ('T1018',     'Remote System Discovery'),
-    'nbtstat':   ('T1018',     'Remote System Discovery'),
-    'w32tm':     ('T1124',     'System Time Discovery'),
-    'chage':     ('T1201',     'Password Policy Discovery'),
-    # ── Lateral Movement / Exfiltration ───────────────────────────────────────
-    'ssh':       ('T1021.004', 'Remote Services: SSH'),
-    'scp':       ('T1048',     'Exfiltration Over Alternative Protocol'),
-    'rsync':     ('T1048',     'Exfiltration Over Alternative Protocol'),
-    'ftp':       ('T1048',     'Exfiltration Over Alternative Protocol'),
-    'sftp':      ('T1048',     'Exfiltration Over Alternative Protocol'),
-    # ── Archive / Staging ─────────────────────────────────────────────────────
-    'tar':       ('T1560.001', 'Archive Collected Data: Archive via Utility'),
-    'zip':       ('T1560.001', 'Archive Collected Data: Archive via Utility'),
-    'gzip':      ('T1560.001', 'Archive Collected Data: Archive via Utility'),
-    'base64':    ('T1132.001', 'Data Encoding: Standard Encoding'),
-    # ── Persistence ───────────────────────────────────────────────────────────
-    'crontab':   ('T1053.003', 'Scheduled Task/Job: Cron'),
-    'at':        ('T1053.002', 'Scheduled Task/Job: At'),
-    'useradd':   ('T1136.001', 'Create Account: Local Account'),
-    'adduser':   ('T1136.001', 'Create Account: Local Account'),
-    'usermod':   ('T1098',     'Account Manipulation'),
-    'passwd':    ('T1531',     'Account Access Removal'),
-    # ── Credential Access ─────────────────────────────────────────────────────
-    'john':      ('T1110.002', 'Brute Force: Password Cracking'),
-    'hashcat':   ('T1110.002', 'Brute Force: Password Cracking'),
-    'hydra':     ('T1110.001', 'Brute Force: Password Guessing'),
-    # ── Windows execution ─────────────────────────────────────────────────────
-    'powershell':('T1059.001', 'Command and Script Interpreter: PowerShell'),
-    'pwsh':      ('T1059.001', 'Command and Script Interpreter: PowerShell'),
-    'cmd':       ('T1059.003', 'Command and Script Interpreter: Windows Command Shell'),
-    'wscript':   ('T1059.005', 'Command and Script Interpreter: Visual Basic'),
-    'cscript':   ('T1059.005', 'Command and Script Interpreter: Visual Basic'),
-    'mshta':     ('T1218.005', 'System Binary Proxy Execution: Mshta'),
-    'rundll32':  ('T1218.011', 'System Binary Proxy Execution: Rundll32'),
-    'regsvr32':  ('T1218.010', 'System Binary Proxy Execution: Regsvr32'),
-    'certutil':  ('T1140',     'Deobfuscate/Decode Files or Information'),
-    'bitsadmin': ('T1197',     'BITS Jobs'),
-    'wmic':      ('T1047',     'Windows Management Instrumentation'),
-    'pcalua':    ('T1218',     'System Binary Proxy Execution'),
-    'wuauclt':   ('T1218.013', 'System Binary Proxy Execution: Electron Application'),
-    'msxsl':     ('T1220',     'XSL Script Processing'),
-    'appcmd':    ('T1505.004', 'Server Software Component: IIS Components'),
-    'wsmprovhost':('T1021.006','Remote Services: WinRM'),
-    'sqlcmd':    ('T1059',     'Command and Script Interpreter'),
-    'xwizard':   ('T1218',     'System Binary Proxy Execution'),
-    'syncappvpublishingserver': ('T1218', 'System Binary Proxy Execution'),
-    'mavinject': ('T1055',     'Process Injection'),
-    'infdefaultinstall': ('T1218', 'System Binary Proxy Execution'),
-    'winrm':     ('T1021.006', 'Remote Services: WinRM'),
-    'sharprdp':  ('T1021.001', 'Remote Services: Remote Desktop Protocol'),
-    'control':   ('T1218',     'System Binary Proxy Execution'),
-    'cpl':       ('T1218',     'System Binary Proxy Execution'),
-    'desktopimgdownldr': ('T1197', 'BITS Jobs'),
-    # ── Accessibility feature backdoors (T1546.008) ────────────────────────────
-    'osk':       ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
-    'sethc':     ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
-    'utilman':   ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
-    'narrator':  ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
-    'magnify':   ('T1546.008', 'Event Triggered Execution: Accessibility Features'),
-    # ── Volume shadow copy / recovery manipulation ─────────────────────────────
-    'vshadow':   ('T1490',     'Inhibit System Recovery'),
-    # ── WMI / process hollowing helpers ───────────────────────────────────────
-    'wermgr':    ('T1055',     'Process Injection'),
-    # ── Windows persistence ───────────────────────────────────────────────────
-    'schtasks':  ('T1053.005', 'Scheduled Task/Job: Scheduled Task'),
-    'sc':        ('T1543.003', 'Create or Modify System Process: Windows Service'),
-    'reg':       ('T1112',     'Modify Registry'),
-    'regedit':   ('T1112',     'Modify Registry'),
-    'net':       ('T1069',     'Permission Groups Discovery'),
-    'net1':      ('T1069',     'Permission Groups Discovery'),
-    # ── Windows credential access ─────────────────────────────────────────────
-    'mimikatz':  ('T1003',     'OS Credential Dumping'),
-    'procdump':  ('T1003.001', 'OS Credential Dumping: LSASS Memory'),
-    'ntdsutil':  ('T1003.003', 'OS Credential Dumping: NTDS'),
-    'vaultcmd':  ('T1555',     'Credentials from Password Stores'),
-    'cmdkey':    ('T1552',     'Unsecured Credentials'),
-    # ── Windows defense evasion / impact ──────────────────────────────────────
-    'vssadmin':  ('T1490',     'Inhibit System Recovery'),
-    'bcdedit':   ('T1490',     'Inhibit System Recovery'),
-    'fsutil':    ('T1070',     'Indicator Removal'),
-    # ── Impact ────────────────────────────────────────────────────────────────
-    'shutdown':  ('T1529',     'System Shutdown/Reboot'),
-    'cipher':    ('T1485',     'Data Destruction'),
-    'sdelete':   ('T1485',     'Data Destruction'),
-    # ── Collection ────────────────────────────────────────────────────────────
-    'clip':      ('T1115',     'Clipboard Data'),
-}
-
 
 def map_event(event_type: str) -> tuple[str | None, str | None]:
     """Return (mitre_id, technique_name) for a known event_type, else (None, None)."""
     return MITRE_MAP.get(event_type, (None, None))
-
-
-def map_command(command: str) -> tuple[str | None, str | None]:
-    """Return (mitre_id, technique_name) for a command string, else (None, None).
-
-    Matches on the base command name, ignoring path prefixes and arguments.
-    Handles both Unix (/usr/bin/wget) and Windows (C:\\Windows\\System32\\cmd.exe) paths.
-    """
-    if not command or not command.strip():
-        return (None, None)
-    base = command.strip().split()[0]
-    base = base.strip('"\'')          # strip quotes from "C:\path\exe.exe" style args
-    base = base.replace('\\', '/').split('/')[-1].lower()
-    for ext in ('.exe', '.com', '.bat', '.cmd', '.scr'):
-        if base.endswith(ext):
-            base = base[: -len(ext)]
-            break
-    return SUSPICIOUS_COMMANDS.get(base, (None, None))

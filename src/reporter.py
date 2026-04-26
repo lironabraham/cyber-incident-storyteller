@@ -25,6 +25,51 @@ from schema import StandardEvent
 _SEVERITY_ORDER = {'info': 0, 'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
 _SUCCESS_TYPES = {'Accepted Password', 'Accepted Publickey'}
 
+_CHAIN_TYPE_RECOMMENDATIONS: dict[str, list[str]] = {
+    'brute_force': [
+        'Enforce MFA on all externally-accessible services',
+        'Implement account lockout after 5 failed attempts',
+        'Block originating IP at the perimeter firewall',
+        'Review VPN and RDP exposure — restrict to known IP ranges',
+    ],
+    'credential_stuffing': [
+        'Rotate credentials for all accounts targeted in the attack',
+        'Enforce MFA — credential stuffing succeeds when passwords are the only factor',
+        'Deploy a credential-breach monitoring service (e.g. HaveIBeenPwned API)',
+        'Review and revoke any active sessions for affected accounts',
+    ],
+    'post_exploitation': [
+        'Isolate affected host immediately and capture a forensic image',
+        'Rotate all credentials accessible from the compromised host',
+        'Review parent-child process relationships and new persistence mechanisms',
+        'Hunt for lateral movement from the compromised host across the network',
+    ],
+    'unauthorized_access': [
+        'Investigate the successful login — verify it is not a legitimate user',
+        'Revoke session tokens and force re-authentication for the affected account',
+        'Review what resources were accessed after the login',
+        'Check for new scheduled tasks, services, or startup entries added post-login',
+    ],
+    'lateral_movement': [
+        'Implement network segmentation — restrict lateral movement paths',
+        'Disable NTLM authentication where Kerberos is available',
+        'Audit SMB shares and RDP access — apply least-privilege',
+        'Deploy host-based firewall rules to block unexpected inbound connections',
+    ],
+    'credential_access': [
+        'Assume all credentials on the affected host are compromised — rotate immediately',
+        'Enable Credential Guard on Windows endpoints',
+        'Restrict LSASS access — enable RunAsPPL (Protected Process Light)',
+        'Audit and disable unnecessary accounts with LSASS access rights',
+    ],
+    'defense_evasion': [
+        'Review and restore audit log settings — check for gaps in the event timeline',
+        'Enable tamper protection on endpoint security software',
+        'Centralize log forwarding to a SIEM — prevent local log tampering',
+        'Hunt for additional LOLBin executions (certutil, regsvr32, mshta, rundll32)',
+    ],
+}
+
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
@@ -181,52 +226,50 @@ def _threat_actor_detail(chains: list[AttackChain]) -> str:
     return '\n'.join(lines)
 
 
+def _chain_type_recommendations(chain_types: set[str]) -> list[str]:
+    """Generate actionable recommendations based on detected chain types.
+
+    Args:
+        chain_types: Set of chain type strings from detected attacks
+
+    Returns:
+        Deduplicated list of recommendations for all detected chain types.
+        Falls back to 3 generic recommendations if no specific types match.
+    """
+    recommendations: list[str] = []
+    seen: set[str] = set()
+
+    # Collect recommendations for all detected chain types (in order)
+    for chain_type in sorted(chain_types):
+        if chain_type in _CHAIN_TYPE_RECOMMENDATIONS:
+            for rec in _CHAIN_TYPE_RECOMMENDATIONS[chain_type]:
+                if rec not in seen:
+                    recommendations.append(rec)
+                    seen.add(rec)
+
+    # Fall back to generic recommendations if no specific ones found
+    if not recommendations:
+        recommendations = [
+            'No immediate threats detected. Continue routine monitoring.',
+            'Review access logs for any unusual patterns.',
+            'Maintain current security posture and alert thresholds.',
+        ]
+
+    return recommendations
+
+
 def _recommendations(chains: list[AttackChain]) -> str:
-    recs: list[str] = []
+    if not chains:
+        lines = ['## Recommendations\n']
+        lines.append('1. No attack chains detected. Continue routine monitoring.')
+        lines.append('')
+        return '\n'.join(lines)
 
-    brute_ips = [c.actor_ip for c in chains if not c.compromised]
-    compromised = [c for c in chains if c.compromised]
+    # Collect all chain types present in the incident
+    chain_types = {c.chain_type for c in chains}
 
-    if brute_ips:
-        ip_list = ', '.join(brute_ips[:5])
-        extra = f' and {len(brute_ips) - 5} more' if len(brute_ips) > 5 else ''
-        recs.append(
-            f'Block {len(brute_ips)} IP(s) exhibiting brute-force behavior: {ip_list}{extra}.'
-        )
-
-    if compromised:
-        recs.append(
-            'Immediately audit and rotate credentials for all compromised accounts.'
-        )
-        recs.append(
-            'Review sudo logs and session commands for post-exploitation activity '
-            '(file downloads, persistence mechanisms, privilege escalation).'
-        )
-
-    all_events_flat = [e for c in chains for e in c.events]
-    has_sudo = any(e.event_type == 'Sudo Command' for e in all_events_flat)
-    if has_sudo:
-        recs.append(
-            'Audit sudo policy — restrict to minimum required privileges '
-            '(principle of least privilege).'
-        )
-
-    root_attacks = any(
-        e.source_actor.get('user') == 'root' and e.event_type == 'Failed Login'
-        for c in chains for e in c.events
-    )
-    if root_attacks:
-        recs.append(
-            'Disable direct root SSH login: set `PermitRootLogin no` in sshd_config.'
-        )
-
-    recs.append(
-        'Enable fail2ban or equivalent rate-limiting to automatically throttle '
-        'repeated authentication failures.'
-    )
-
-    if not [r for r in recs if 'Block' in r or 'Immediately' in r]:
-        recs.insert(0, 'No immediate threats detected. Continue routine monitoring.')
+    # Get chain-type-specific recommendations
+    recs = _chain_type_recommendations(chain_types)
 
     lines = ['## Recommendations\n']
     for i, rec in enumerate(recs, 1):

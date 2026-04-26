@@ -141,7 +141,10 @@ def extract_record(
     # ── EventID 1: Process Created ────────────────────────────────────────────
     if event_id == 1:
         cmd = data.get('CommandLine', '') or image
-        return _row(event_type, timestamp, hostname, proc, None, cmd or None, raw_xml)
+        parent_image = data.get('ParentImage', '') or ''
+        parent = _basename(parent_image) or None
+        row = _row(event_type, timestamp, hostname, proc, None, cmd or None, raw_xml)
+        return {**row, 'command_line': cmd or None, 'parent_process': parent}
 
     # ── EventID 3: Network Connection ─────────────────────────────────────────
     if event_id == 3:
@@ -181,7 +184,8 @@ def extract_record(
         elif target not in _HIGH_VALUE_TARGETS:
             if not _has_injection_access(access):
                 return None
-        return _row(event_type, timestamp, hostname, proc, None, user, raw_xml)
+        row = _row(event_type, timestamp, hostname, proc, None, user, raw_xml)
+        return {**row, 'access_flags': access or None}
 
     # ── EventID 11: FileCreate ────────────────────────────────────────────────
     if event_id == 11:

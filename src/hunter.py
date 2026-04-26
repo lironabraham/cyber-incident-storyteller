@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from typing import TypedDict
 
+from behavioral_detector import find_behavioral_chains
 from schema import StandardEvent
 
 
@@ -573,6 +574,11 @@ def build_attack_chains(
              is_lolbin=True are correlated with follow-on events (network
              connection, process access, registry write, child process) within
              a 60-second window. Routes into existing chain types; no new type.
+    Pass 4.6 — Behavioral anomaly detection: uncovered process-execution events
+             analysed for temp-path execution, suspicious parent-child spawns
+             (Office/browser → shell), and CLI obfuscation (base64, IEX, -enc).
+             Catches random-named binaries and custom PoC tools that bypass
+             signature-based detection.
     Pass 5 — Credential access: Sysmon LSASS memory-read events (EventID 10)
              and Windows Object Access that are not yet covered.  Single-event
              chains with chain_type='credential_access'.
@@ -604,6 +610,10 @@ def build_attack_chains(
     # registry writes) before the high-value sweep absorbs them.
     lolbin_chains = _find_lolbin_chains(events, covered_event_ids)
     chains.extend(lolbin_chains)
+
+    # ── Pass 4.6: Behavioral anomaly detection ───────────────────────────────
+    behavioral_chains = find_behavioral_chains(events, covered_event_ids)
+    chains.extend(behavioral_chains)
 
     # ── Pass 4: high-value events not covered by IP/elevation chains ──────────
     # Group uncovered high-value events by user (None = unattributed).

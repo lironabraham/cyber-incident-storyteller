@@ -41,6 +41,16 @@ class StandardEvent:
     log_format: str                  # 'auth_log' | 'syslog' | 'audit_log' | 'web_access' | 'sysmon_linux'
     pid: str | None = None           # syslog PID for session-affinity linking
     is_lolbin: bool = False          # True when process command matches a known LOLBin
+    # Extended fields — populated from sysmon_evtx / ingest when available.
+    # Field semantics vary by log_format:
+    #   command_line:   full argv string  (evtx/sysmon EID 1 CommandLine; else None)
+    #   parent_process: spawning process basename lowercase (evtx/sysmon ParentImage; else None)
+    #   object_path:    target of access/modification (registry key, file path, share; else None)
+    #   access_flags:   raw hex access mask from OpenProcess/ObjectAccess (e.g. '0x001fffff'; else None)
+    command_line: str | None = None
+    parent_process: str | None = None
+    object_path: str | None = None
+    access_flags: str | None = None
 
     def __post_init__(self):
         # Enforce UTC-aware timestamp

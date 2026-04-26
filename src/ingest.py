@@ -377,6 +377,12 @@ def ingest(
             severity = _compute_severity(event_type, source_ip, ip_failure_counts)
         action = _action_taken(event_type, user, source_ip, raw)
 
+        # Extended fields — populated from sysmon_evtx extras when available.
+        cmd_line    = row.get('command_line')
+        parent_proc = row.get('parent_process')
+        obj_path    = row.get('object_path')
+        acc_flags   = row.get('access_flags')
+
         events.append(StandardEvent(
             event_id=make_event_id(),
             timestamp=ts,
@@ -394,6 +400,10 @@ def ingest(
             log_format=fmt,
             pid=pid,
             is_lolbin=is_lolbin,
+            command_line=str(cmd_line) if cmd_line else None,
+            parent_process=str(parent_proc) if parent_proc else None,
+            object_path=str(obj_path) if obj_path else None,
+            access_flags=str(acc_flags) if acc_flags else None,
         ))
 
     # Persist processed events
