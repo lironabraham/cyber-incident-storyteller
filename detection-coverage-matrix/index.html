@@ -10,13 +10,9 @@
       
       
       
-        <link rel="canonical" href="https://lironabraham.github.io/cyber-incident-storyteller/detection-coverage/">
+        <link rel="canonical" href="https://lironabraham.github.io/cyber-incident-storyteller/detection-coverage-matrix/">
       
       
-        <link rel="prev" href="../supported-formats/">
-      
-      
-        <link rel="next" href="../sample-report/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Detection Coverage - Cyber Incident Storyteller</title>
+        <title>Detection coverage matrix - Cyber Incident Storyteller</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#detection-coverage" class="md-skip">
+        <a href="#mitre-attck-coverage-matrix" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Detection Coverage
+              Detection coverage matrix
             
           </span>
         </div>
@@ -367,37 +363,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Detection Coverage
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../detection-coverage/" class="md-nav__link">
         
   
   
@@ -413,264 +382,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#mitre-attck-coverage-matrix" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        MITRE ATT&amp;CK Coverage Matrix
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="MITRE ATT&amp;CK Coverage Matrix">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#tactic-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tactic Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#windows-eventids-evtx-parser" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Windows EventIDs (EVTX parser)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#linux-event-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Linux Event Types
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Linux Event Types">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#authlog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        auth.log
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#syslog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        syslog
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auditlog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        audit.log
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#web_access-nginx-apache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        web_access (nginx / Apache)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sysmon_linux-microsoft-sysmon-for-linux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sysmon_linux (Microsoft Sysmon for Linux)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#command-level-mitre-mapping-53-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command-Level MITRE Mapping (53 commands)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Command-Level MITRE Mapping (53 commands)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ingress-c2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ingress / C2
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#execution" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#defense-evasion" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Defense Evasion
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#discovery" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Discovery
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lateral-movement-exfiltration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Lateral Movement / Exfiltration
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#archive-staging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Archive / Staging
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#persistence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Persistence
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#credential-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Credential Access
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#attack-chain-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attack Chain Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#detection-pathways" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detection Pathways
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -800,8 +511,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -832,39 +541,11 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#windows-eventids-evtx-parser" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Windows EventIDs (EVTX parser)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#linux-event-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Linux Event Types
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Linux Event Types">
-      <ul class="md-nav__list">
-        
           <li class="md-nav__item">
-  <a href="#authlog" class="md-nav__link">
+  <a href="#reconnaissance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        auth.log
+        Reconnaissance
       
     </span>
   </a>
@@ -872,71 +553,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#syslog" class="md-nav__link">
+  <a href="#initial-access" class="md-nav__link">
     <span class="md-ellipsis">
       
-        syslog
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auditlog" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        audit.log
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#web_access-nginx-apache" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        web_access (nginx / Apache)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sysmon_linux-microsoft-sysmon-for-linux" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        sysmon_linux (Microsoft Sysmon for Linux)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#command-level-mitre-mapping-53-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Command-Level MITRE Mapping (53 commands)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Command-Level MITRE Mapping (53 commands)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ingress-c2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Ingress / C2
+        Initial Access
       
     </span>
   </a>
@@ -955,10 +575,43 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#persistence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#privilege-escalation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Privilege Escalation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#defense-evasion" class="md-nav__link">
     <span class="md-ellipsis">
       
         Defense Evasion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#credential-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credential Access
       
     </span>
   </a>
@@ -977,10 +630,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#lateral-movement-exfiltration" class="md-nav__link">
+  <a href="#lateral-movement" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Lateral Movement / Exfiltration
+        Lateral Movement
       
     </span>
   </a>
@@ -988,10 +641,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#archive-staging" class="md-nav__link">
+  <a href="#collection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Archive / Staging
+        Collection
       
     </span>
   </a>
@@ -999,10 +652,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#persistence" class="md-nav__link">
+  <a href="#command-and-control" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Persistence
+        Command and Control
       
     </span>
   </a>
@@ -1010,10 +663,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#credential-access" class="md-nav__link">
+  <a href="#exfiltration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Credential Access
+        Exfiltration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Impact
       
     </span>
   </a>
@@ -1022,28 +686,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#attack-chain-types" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attack Chain Types
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#detection-pathways" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Detection Pathways
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1067,8 +709,8 @@
   
 
 
-<h1 id="detection-coverage">Detection Coverage</h1>
-<p>Every event type, Windows EventID, MITRE technique, and detection pathway the tool currently supports.</p>
+  <h1>Detection coverage matrix</h1>
+
 <h2 id="mitre-attck-coverage-matrix">MITRE ATT&amp;CK Coverage Matrix</h2>
 <p><strong>83 of ~242 parent techniques</strong> detected across <strong>13 of 13 tactics</strong> (MITRE ATT&amp;CK Enterprise v18).</p>
 <div class="admonition tip">
@@ -1168,417 +810,43 @@ to see every ATT&amp;CK technique colour-coded by whether this tool detects it.<
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>Coverage numbers reflect <code>src/mitre.py</code>. Run <code>ais coverage</code> to regenerate after adding new detections.</p>
-</blockquote>
 <hr />
-<hr />
-<h2 id="windows-eventids-evtx-parser">Windows EventIDs (EVTX parser)</h2>
+<h3 id="reconnaissance">Reconnaissance</h3>
 <table>
 <thead>
 <tr>
-<th>EventID</th>
-<th>Channel</th>
-<th>Event Type</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>4624</td>
-<td>Security</td>
-<td>Windows Logon Success (type 3/10 → Remote Logon)</td>
-<td>T1078 / T1021</td>
-</tr>
-<tr>
-<td>4625</td>
-<td>Security</td>
-<td>Windows Logon Failure</td>
-<td>T1110.001</td>
-</tr>
-<tr>
-<td>4648</td>
-<td>Security</td>
-<td>Windows Explicit Credential Use</td>
-<td>T1550.002</td>
-</tr>
-<tr>
-<td>4672</td>
-<td>Security</td>
-<td>Windows Privilege Assigned</td>
-<td>T1078.002</td>
-</tr>
-<tr>
-<td>4688</td>
-<td>Security</td>
-<td>Windows Process Creation</td>
-<td>mapped per command</td>
-</tr>
-<tr>
-<td>4697</td>
-<td>Security</td>
-<td>Windows Service Installed</td>
-<td>T1543.003</td>
-</tr>
-<tr>
-<td>4698</td>
-<td>Security</td>
-<td>Windows Scheduled Task (created)</td>
-<td>T1053.005</td>
-</tr>
-<tr>
-<td>4699</td>
-<td>Security</td>
-<td>Windows Scheduled Task (deleted)</td>
-<td>T1053.005</td>
-</tr>
-<tr>
-<td>4702</td>
-<td>Security</td>
-<td>Windows Scheduled Task (modified)</td>
-<td>T1053.005</td>
-</tr>
-<tr>
-<td>4720</td>
-<td>Security</td>
-<td>Windows Account Created</td>
-<td>T1136.001</td>
-</tr>
-<tr>
-<td>4728</td>
-<td>Security</td>
-<td>Windows Group Member Added (global)</td>
-<td>T1098</td>
-</tr>
-<tr>
-<td>4732</td>
-<td>Security</td>
-<td>Windows Group Member Added (local)</td>
-<td>T1098</td>
-</tr>
-<tr>
-<td>4768</td>
-<td>Security</td>
-<td>Windows Kerberos TGT Request</td>
-<td>T1558</td>
-</tr>
-<tr>
-<td>4769</td>
-<td>Security</td>
-<td>Windows Kerberos Service Ticket</td>
-<td>T1558.003</td>
-</tr>
-<tr>
-<td>4771</td>
-<td>Security</td>
-<td>Windows Kerberos PreAuth Failure</td>
-<td>T1110</td>
-</tr>
-<tr>
-<td>5145</td>
-<td>Security</td>
-<td>Windows Share Access</td>
-<td>T1021.002</td>
-</tr>
-<tr>
-<td>7045</td>
-<td>System</td>
-<td>Windows Service Installed</td>
-<td>T1543.003</td>
-</tr>
-<tr>
-<td>4663</td>
-<td>Security</td>
-<td>Windows Object Access (LSASS/NTDS/SAM filter)</td>
-<td>T1003.001</td>
-</tr>
-<tr>
-<td>4776</td>
-<td>Security</td>
-<td>Windows NTLM Auth</td>
-<td>T1550.002</td>
-</tr>
-<tr>
-<td>4740</td>
-<td>Security</td>
-<td>Windows Account Lockout</td>
-<td>T1110</td>
-</tr>
-<tr>
-<td>4662</td>
-<td>Security</td>
-<td>Windows DS Object Access (DCSync)</td>
-<td>T1003.006</td>
-</tr>
-<tr>
-<td>1102</td>
-<td>Security</td>
-<td>Windows Log Cleared</td>
-<td>T1070.001</td>
-</tr>
-<tr>
-<td>4657</td>
-<td>Security</td>
-<td>Windows Registry Modified</td>
-<td>T1112</td>
-</tr>
-<tr>
-<td>4703</td>
-<td>Security</td>
-<td>Windows Token Rights Adjusted</td>
-<td>T1134</td>
-</tr>
-<tr>
-<td>4726</td>
-<td>Security</td>
-<td>Windows Account Deleted</td>
-<td>T1531</td>
-</tr>
-<tr>
-<td>4738</td>
-<td>Security</td>
-<td>Windows Account Changed</td>
-<td>T1098</td>
-</tr>
-<tr>
-<td>5156</td>
-<td>Security</td>
-<td>Windows Network Connection (lateral ports filter)</td>
-<td>T1021</td>
-</tr>
-<tr>
-<td>4689</td>
-<td>Security</td>
-<td>Process Terminated</td>
-<td><em>(skipped — noise)</em></td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="linux-event-types">Linux Event Types</h2>
-<h3 id="authlog">auth.log</h3>
-<table>
-<thead>
-<tr>
-<th>Event Type</th>
-<th>Source pattern</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Failed Login</td>
-<td><code>Failed password for ...</code></td>
-<td>T1110 Brute Force</td>
-</tr>
-<tr>
-<td>Invalid User</td>
-<td><code>Invalid user ... from</code></td>
-<td>T1110.001 Password Guessing</td>
-</tr>
-<tr>
-<td>Auth Failure</td>
-<td><code>pam_unix(...): authentication failure</code></td>
-<td>T1110 Brute Force</td>
-</tr>
-<tr>
-<td>Accepted Password</td>
-<td><code>Accepted password for ...</code></td>
-<td>T1078 Valid Accounts</td>
-</tr>
-<tr>
-<td>Accepted Publickey</td>
-<td><code>Accepted publickey for ...</code></td>
-<td>T1078 Valid Accounts</td>
-</tr>
-<tr>
-<td>Session Opened</td>
-<td><code>session opened for user ...</code></td>
-<td>T1021.004 SSH</td>
-</tr>
-<tr>
-<td>Sudo Command</td>
-<td><code>sudo: ... COMMAND=...</code></td>
-<td>T1548.003 Sudo</td>
-</tr>
-</tbody>
-</table>
-<h3 id="syslog">syslog</h3>
-<table>
-<thead>
-<tr>
-<th>Event Type</th>
-<th>Source pattern</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Service Started</td>
-<td><code>systemd: Started ...</code></td>
-<td>T1543.002 Systemd Service</td>
-</tr>
-<tr>
-<td>Service Stopped</td>
-<td><code>systemd: Stopped ...</code></td>
-<td>T1489 Service Stop</td>
-</tr>
-<tr>
-<td>Service Failed</td>
-<td><code>systemd: Failed ...</code></td>
-<td>—</td>
-</tr>
-<tr>
-<td>Cron Execution</td>
-<td><code>CRON: ... CMD (...)</code></td>
-<td>T1053.003 Cron</td>
-</tr>
-<tr>
-<td>OOM Kill</td>
-<td><code>kernel: Out of memory: Kill process</code></td>
-<td>—</td>
-</tr>
-<tr>
-<td>USB Connected</td>
-<td><code>kernel: usb ...: new USB device found</code></td>
-<td>T1025 Removable Media</td>
-</tr>
-</tbody>
-</table>
-<h3 id="auditlog">audit.log</h3>
-<table>
-<thead>
-<tr>
-<th>Event Type</th>
-<th>Source pattern</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Process Execution</td>
-<td><code>type=EXECVE a0="..."</code></td>
-<td>mapped per command</td>
-</tr>
-<tr>
-<td>Shell Execution</td>
-<td><code>type=SYSCALL comm="bash/sh"</code></td>
-<td>T1059.004 Unix Shell</td>
-</tr>
-<tr>
-<td>File Access</td>
-<td><code>type=OPEN name="/etc/shadow"</code></td>
-<td>T1003.008 /etc/shadow</td>
-</tr>
-<tr>
-<td>Audit Login</td>
-<td><code>type=USER_LOGIN res=success</code></td>
-<td>T1078 Valid Accounts</td>
-</tr>
-<tr>
-<td>Audit Auth Failure</td>
-<td><code>type=USER_AUTH res=failed</code></td>
-<td>T1110 Brute Force</td>
-</tr>
-</tbody>
-</table>
-<h3 id="web_access-nginx-apache">web_access (nginx / Apache)</h3>
-<table>
-<thead>
-<tr>
-<th>Event Type</th>
-<th>Detection logic</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Web Shell</td>
-<td>POST to <code>.php</code>/<code>.asp</code>/<code>.jsp</code> returning 200</td>
-<td>T1505.003 Web Shell</td>
-</tr>
-<tr>
-<td>Web Attack</td>
-<td>SQLi/XSS/traversal patterns in URI</td>
-<td>T1190 Exploit Public-Facing</td>
-</tr>
-<tr>
-<td>Web Scan</td>
-<td>Rapid sequential 404s from one IP</td>
-<td>T1595 Active Scanning</td>
-</tr>
-<tr>
-<td>Tool Fingerprint</td>
-<td><code>sqlmap</code>/<code>nikto</code>/<code>masscan</code> in User-Agent</td>
-<td>T1595.002 Vulnerability Scan</td>
-</tr>
-<tr>
-<td>Admin Access</td>
-<td>Requests to <code>/admin</code>, <code>/wp-admin</code>, <code>/.env</code></td>
-<td>T1078 Valid Accounts</td>
-</tr>
-</tbody>
-</table>
-<h3 id="sysmon_linux-microsoft-sysmon-for-linux">sysmon_linux (Microsoft Sysmon for Linux)</h3>
-<table>
-<thead>
-<tr>
-<th>Sysmon EventID</th>
-<th>Event Type</th>
-<th>MITRE Technique</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>Process Created</td>
-<td>mapped per command</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Network Connection</td>
-<td>T1071 Application Layer Protocol</td>
-</tr>
-<tr>
-<td>11</td>
-<td>File Created</td>
-<td>—</td>
-</tr>
-<tr>
-<td>23</td>
-<td>File Deleted</td>
-<td>T1070.004 File Deletion</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Process Terminated</td>
-<td><em>(skipped — noise)</em></td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="command-level-mitre-mapping-53-commands">Command-Level MITRE Mapping (53 commands)</h2>
-<p><code>map_command()</code> strips path prefixes and <code>.exe</code>/<code>.com</code> extensions before lookup — works on both
-Unix (<code>/usr/bin/wget</code>) and Windows (<code>C:\Windows\System32\cmd.exe</code>) process paths.</p>
-<h3 id="ingress-c2">Ingress / C2</h3>
-<table>
-<thead>
-<tr>
-<th>Command</th>
 <th>Technique</th>
 <th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>wget</code>, <code>curl</code></td>
-<td>T1105</td>
-<td>Ingress Tool Transfer</td>
+<td><code>T1595</code></td>
+<td>Active Scanning</td>
+<td><code>Web Scan</code></td>
 </tr>
 <tr>
-<td><code>socat</code></td>
-<td>T1071</td>
-<td>Application Layer Protocol</td>
+<td><code>T1595.002</code></td>
+<td>Vulnerability Scanning</td>
+<td><code>Tool Fingerprint</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="initial-access">Initial Access</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1190</code></td>
+<td>Exploit Public-Facing Application</td>
+<td><code>Web Attack</code></td>
 </tr>
 </tbody>
 </table>
@@ -1586,204 +854,46 @@ Unix (<code>/usr/bin/wget</code>) and Windows (<code>C:\Windows\System32\cmd.exe
 <table>
 <thead>
 <tr>
-<th>Command</th>
 <th>Technique</th>
 <th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>nc</code>, <code>ncat</code>, <code>netcat</code></td>
-<td>T1059</td>
-<td>Command and Script Interpreter</td>
-</tr>
-<tr>
-<td><code>python</code>, <code>python3</code></td>
-<td>T1059.006</td>
-<td>Python</td>
-</tr>
-<tr>
-<td><code>perl</code>, <code>ruby</code>, <code>php</code></td>
-<td>T1059</td>
-<td>Command and Script Interpreter</td>
-</tr>
-<tr>
-<td><code>bash</code>, <code>sh</code></td>
-<td>T1059.004</td>
-<td>Unix Shell</td>
-</tr>
-<tr>
-<td><code>powershell</code>, <code>pwsh</code></td>
-<td>T1059.001</td>
-<td>PowerShell</td>
-</tr>
-<tr>
-<td><code>cmd</code></td>
-<td>T1059.003</td>
-<td>Windows Command Shell</td>
-</tr>
-<tr>
-<td><code>wscript</code>, <code>cscript</code></td>
-<td>T1059.005</td>
-<td>Visual Basic</td>
-</tr>
-<tr>
-<td><code>mshta</code></td>
-<td>T1218.005</td>
-<td>Mshta</td>
-</tr>
-<tr>
-<td><code>rundll32</code></td>
-<td>T1218.011</td>
-<td>Rundll32</td>
-</tr>
-<tr>
-<td><code>regsvr32</code></td>
-<td>T1218.010</td>
-<td>Regsvr32</td>
-</tr>
-<tr>
-<td><code>wmic</code></td>
-<td>T1047</td>
+<td><code>T1047</code></td>
 <td>Windows Management Instrumentation</td>
-</tr>
-</tbody>
-</table>
-<h3 id="defense-evasion">Defense Evasion</h3>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Technique</th>
-<th>Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>shred</code>, <code>truncate</code></td>
-<td>T1070.002</td>
-<td>Clear Linux Logs</td>
+<td><code>cmd:wmic</code></td>
 </tr>
 <tr>
-<td><code>history</code>, <code>unset</code></td>
-<td>T1070.003</td>
-<td>Clear Command History</td>
+<td><code>T1059</code></td>
+<td>Command and Script Interpreter</td>
+<td><code>cmd:nc</code>, <code>cmd:ncat</code>, <code>cmd:netcat</code>, <code>cmd:perl</code>, +2 more</td>
 </tr>
 <tr>
-<td><code>chmod</code></td>
-<td>T1222</td>
-<td>File and Directory Permissions Modification</td>
+<td><code>T1059.001</code></td>
+<td>Command and Script Interpreter: PowerShell</td>
+<td><code>cmd:powershell</code>, <code>cmd:pwsh</code></td>
 </tr>
 <tr>
-<td><code>certutil</code></td>
-<td>T1140</td>
-<td>Deobfuscate/Decode Files or Information</td>
+<td><code>T1059.003</code></td>
+<td>Command and Script Interpreter: Windows Command Shell</td>
+<td><code>cmd:cmd</code></td>
 </tr>
 <tr>
-<td><code>vssadmin</code>, <code>bcdedit</code></td>
-<td>T1490</td>
-<td>Inhibit System Recovery</td>
+<td><code>T1059.004</code></td>
+<td>Unix Shell</td>
+<td><code>Shell Execution</code>, <code>cmd:bash</code>, <code>cmd:sh</code></td>
 </tr>
 <tr>
-<td><code>fsutil</code></td>
-<td>T1070</td>
-<td>Indicator Removal</td>
-</tr>
-</tbody>
-</table>
-<h3 id="discovery">Discovery</h3>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Technique</th>
-<th>Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>whoami</code>, <code>id</code></td>
-<td>T1033</td>
-<td>System Owner/User Discovery</td>
+<td><code>T1059.005</code></td>
+<td>Command and Script Interpreter: Visual Basic</td>
+<td><code>cmd:wscript</code>, <code>cmd:cscript</code></td>
 </tr>
 <tr>
-<td><code>uname</code>, <code>hostname</code></td>
-<td>T1082</td>
-<td>System Information Discovery</td>
-</tr>
-<tr>
-<td><code>ps</code></td>
-<td>T1057</td>
-<td>Process Discovery</td>
-</tr>
-<tr>
-<td><code>netstat</code>, <code>ss</code></td>
-<td>T1049</td>
-<td>System Network Connections Discovery</td>
-</tr>
-<tr>
-<td><code>ifconfig</code>, <code>ip</code></td>
-<td>T1016</td>
-<td>System Network Configuration Discovery</td>
-</tr>
-<tr>
-<td><code>find</code></td>
-<td>T1083</td>
-<td>File and Directory Discovery</td>
-</tr>
-<tr>
-<td><code>nmap</code>, <code>masscan</code></td>
-<td>T1046</td>
-<td>Network Service Scanning</td>
-</tr>
-<tr>
-<td><code>net</code>, <code>net1</code></td>
-<td>T1069</td>
-<td>Permission Groups Discovery</td>
-</tr>
-</tbody>
-</table>
-<h3 id="lateral-movement-exfiltration">Lateral Movement / Exfiltration</h3>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Technique</th>
-<th>Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>ssh</code></td>
-<td>T1021.004</td>
-<td>Remote Services: SSH</td>
-</tr>
-<tr>
-<td><code>scp</code>, <code>rsync</code>, <code>ftp</code>, <code>sftp</code></td>
-<td>T1048</td>
-<td>Exfiltration Over Alternative Protocol</td>
-</tr>
-</tbody>
-</table>
-<h3 id="archive-staging">Archive / Staging</h3>
-<table>
-<thead>
-<tr>
-<th>Command</th>
-<th>Technique</th>
-<th>Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>tar</code>, <code>zip</code>, <code>gzip</code></td>
-<td>T1560.001</td>
-<td>Archive Collected Data via Utility</td>
-</tr>
-<tr>
-<td><code>base64</code></td>
-<td>T1132.001</td>
-<td>Data Encoding: Standard Encoding</td>
+<td><code>T1059.006</code></td>
+<td>Python</td>
+<td><code>cmd:python</code>, <code>cmd:python3</code></td>
 </tr>
 </tbody>
 </table>
@@ -1791,56 +901,195 @@ Unix (<code>/usr/bin/wget</code>) and Windows (<code>C:\Windows\System32\cmd.exe
 <table>
 <thead>
 <tr>
-<th>Command</th>
 <th>Technique</th>
 <th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>crontab</code></td>
-<td>T1053.003</td>
-<td>Scheduled Task/Job: Cron</td>
-</tr>
-<tr>
-<td><code>at</code></td>
-<td>T1053.001</td>
+<td><code>T1053.002</code></td>
 <td>Scheduled Task/Job: At</td>
+<td><code>cmd:at</code></td>
 </tr>
 <tr>
-<td><code>useradd</code>, <code>adduser</code></td>
-<td>T1136.001</td>
-<td>Create Account: Local Account</td>
+<td><code>T1053.003</code></td>
+<td>Scheduled Task/Job: Cron</td>
+<td><code>Cron Execution</code>, <code>cmd:crontab</code></td>
 </tr>
 <tr>
-<td><code>usermod</code></td>
-<td>T1098</td>
+<td><code>T1053.005</code></td>
+<td>Scheduled Task/Job: Scheduled Task</td>
+<td><code>Windows Scheduled Task</code>, <code>cmd:schtasks</code></td>
+</tr>
+<tr>
+<td><code>T1098</code></td>
 <td>Account Manipulation</td>
+<td><code>Windows Group Member Added</code>, <code>Windows Account Changed</code>, <code>cmd:usermod</code></td>
 </tr>
 <tr>
-<td><code>passwd</code></td>
-<td>T1531</td>
-<td>Account Access Removal</td>
+<td><code>T1136.001</code></td>
+<td>Create Account: Local Account</td>
+<td><code>Windows Account Created</code>, <code>cmd:useradd</code>, <code>cmd:adduser</code></td>
 </tr>
 <tr>
-<td><code>schtasks</code></td>
-<td>T1053.005</td>
-<td>Scheduled Task</td>
+<td><code>T1505.003</code></td>
+<td>Server Software Component: Web Shell</td>
+<td><code>Web Shell</code></td>
 </tr>
 <tr>
-<td><code>sc</code></td>
-<td>T1543.003</td>
-<td>Windows Service</td>
+<td><code>T1543.002</code></td>
+<td>Create or Modify System Process: Systemd Service</td>
+<td><code>Service Started</code></td>
 </tr>
 <tr>
-<td><code>reg</code>, <code>regedit</code></td>
-<td>T1112</td>
+<td><code>T1543.003</code></td>
+<td>Create or Modify System Process: Windows Service</td>
+<td><code>Windows Service Installed</code>, <code>cmd:sc</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="privilege-escalation">Privilege Escalation</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1134</code></td>
+<td>Access Token Manipulation</td>
+<td><code>Windows Token Rights Adjusted</code></td>
+</tr>
+<tr>
+<td><code>T1548.003</code></td>
+<td>Abuse Elevation Control: Sudo</td>
+<td><code>Sudo Command</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="defense-evasion">Defense Evasion</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1070</code></td>
+<td>Indicator Removal</td>
+<td><code>cmd:fsutil</code></td>
+</tr>
+<tr>
+<td><code>T1070.001</code></td>
+<td>Indicator Removal: Clear Windows Event Logs</td>
+<td><code>Windows Log Cleared</code></td>
+</tr>
+<tr>
+<td><code>T1070.002</code></td>
+<td>Indicator Removal: Clear Linux Logs</td>
+<td><code>cmd:shred</code>, <code>cmd:truncate</code></td>
+</tr>
+<tr>
+<td><code>T1070.003</code></td>
+<td>Indicator Removal: Clear Command History</td>
+<td><code>cmd:history</code>, <code>cmd:unset</code></td>
+</tr>
+<tr>
+<td><code>T1070.004</code></td>
+<td>Indicator Removal: File Deletion</td>
+<td><code>File Deleted</code></td>
+</tr>
+<tr>
+<td><code>T1078</code></td>
+<td>Valid Accounts</td>
+<td><code>Accepted Password</code>, <code>Accepted Publickey</code>, <code>Audit Login</code>, <code>Admin Access</code>, +1 more</td>
+</tr>
+<tr>
+<td><code>T1078.002</code></td>
+<td>Valid Accounts: Domain Accounts</td>
+<td><code>Windows Privilege Assigned</code></td>
+</tr>
+<tr>
+<td><code>T1112</code></td>
 <td>Modify Registry</td>
+<td><code>Windows Registry Modified</code>, <code>cmd:reg</code>, <code>cmd:regedit</code></td>
 </tr>
 <tr>
-<td><code>bitsadmin</code></td>
-<td>T1197</td>
+<td><code>T1140</code></td>
+<td>Deobfuscate/Decode Files or Information</td>
+<td><code>cmd:certutil</code></td>
+</tr>
+<tr>
+<td><code>T1197</code></td>
 <td>BITS Jobs</td>
+<td><code>cmd:bitsadmin</code></td>
+</tr>
+<tr>
+<td><code>T1218.001</code></td>
+<td>System Binary Proxy Execution: Compiled HTML File</td>
+<td><code>cmd:hh</code></td>
+</tr>
+<tr>
+<td><code>T1218.003</code></td>
+<td>System Binary Proxy Execution: CMSTP</td>
+<td><code>cmd:cmstp</code></td>
+</tr>
+<tr>
+<td><code>T1218.004</code></td>
+<td>System Binary Proxy Execution: InstallUtil</td>
+<td><code>cmd:installutil</code></td>
+</tr>
+<tr>
+<td><code>T1218.005</code></td>
+<td>System Binary Proxy Execution: Mshta</td>
+<td><code>cmd:mshta</code></td>
+</tr>
+<tr>
+<td><code>T1218.007</code></td>
+<td>System Binary Proxy Execution: Msiexec</td>
+<td><code>cmd:msiexec</code></td>
+</tr>
+<tr>
+<td><code>T1218.008</code></td>
+<td>System Binary Proxy Execution: Odbcconf</td>
+<td><code>cmd:odbcconf</code></td>
+</tr>
+<tr>
+<td><code>T1218.009</code></td>
+<td>System Binary Proxy Execution: Regasm and Regsvcs</td>
+<td><code>cmd:regasm</code>, <code>cmd:regsvcs</code></td>
+</tr>
+<tr>
+<td><code>T1218.010</code></td>
+<td>System Binary Proxy Execution: Regsvr32</td>
+<td><code>cmd:regsvr32</code></td>
+</tr>
+<tr>
+<td><code>T1218.011</code></td>
+<td>System Binary Proxy Execution: Rundll32</td>
+<td><code>cmd:rundll32</code></td>
+</tr>
+<tr>
+<td><code>T1222</code></td>
+<td>File and Directory Permissions Modification</td>
+<td><code>cmd:chmod</code></td>
+</tr>
+<tr>
+<td><code>T1562.002</code></td>
+<td>Impair Defenses: Disable Windows Event Logging</td>
+<td><code>cmd:auditpol</code>, <code>cmd:wevtutil</code></td>
+</tr>
+<tr>
+<td><code>T1564.001</code></td>
+<td>Hide Artifacts: Hidden Files and Directories</td>
+<td><code>cmd:attrib</code></td>
 </tr>
 </tbody>
 </table>
@@ -1848,114 +1097,291 @@ Unix (<code>/usr/bin/wget</code>) and Windows (<code>C:\Windows\System32\cmd.exe
 <table>
 <thead>
 <tr>
-<th>Command</th>
 <th>Technique</th>
 <th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>john</code>, <code>hashcat</code></td>
-<td>T1110.002</td>
-<td>Brute Force: Password Cracking</td>
-</tr>
-<tr>
-<td><code>hydra</code></td>
-<td>T1110.001</td>
-<td>Brute Force: Password Guessing</td>
-</tr>
-<tr>
-<td><code>mimikatz</code></td>
-<td>T1003</td>
+<td><code>T1003</code></td>
 <td>OS Credential Dumping</td>
+<td><code>cmd:mimikatz</code></td>
 </tr>
 <tr>
-<td><code>procdump</code></td>
-<td>T1003.001</td>
-<td>LSASS Memory</td>
+<td><code>T1003.001</code></td>
+<td>OS Credential Dumping: LSASS Memory</td>
+<td><code>Windows Object Access</code>, <code>cmd:procdump</code></td>
 </tr>
 <tr>
-<td><code>ntdsutil</code></td>
-<td>T1003.003</td>
-<td>NTDS</td>
+<td><code>T1003.003</code></td>
+<td>OS Credential Dumping: NTDS</td>
+<td><code>cmd:ntdsutil</code></td>
+</tr>
+<tr>
+<td><code>T1003.006</code></td>
+<td>OS Credential Dumping: DCSync</td>
+<td><code>Windows DS Object Access</code></td>
+</tr>
+<tr>
+<td><code>T1003.008</code></td>
+<td>OS Credential Dumping: /etc/passwd and /etc/shadow</td>
+<td><code>File Access</code></td>
+</tr>
+<tr>
+<td><code>T1110</code></td>
+<td>Brute Force</td>
+<td><code>Failed Login</code>, <code>Auth Failure</code>, <code>Audit Auth Failure</code>, <code>Windows Kerberos PreAuth Failure</code>, +1 more</td>
+</tr>
+<tr>
+<td><code>T1110.001</code></td>
+<td>Password Guessing</td>
+<td><code>Invalid User</code>, <code>Windows Logon Failure</code>, <code>cmd:hydra</code></td>
+</tr>
+<tr>
+<td><code>T1110.002</code></td>
+<td>Brute Force: Password Cracking</td>
+<td><code>cmd:john</code>, <code>cmd:hashcat</code></td>
+</tr>
+<tr>
+<td><code>T1552</code></td>
+<td>Unsecured Credentials</td>
+<td><code>cmd:cmdkey</code></td>
+</tr>
+<tr>
+<td><code>T1555</code></td>
+<td>Credentials from Password Stores</td>
+<td><code>cmd:vaultcmd</code></td>
+</tr>
+<tr>
+<td><code>T1558</code></td>
+<td>Steal or Forge Kerberos Tickets</td>
+<td><code>Windows Kerberos TGT Request</code></td>
+</tr>
+<tr>
+<td><code>T1558.003</code></td>
+<td>Kerberoasting</td>
+<td><code>Windows Kerberos Service Ticket</code></td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="attack-chain-types">Attack Chain Types</h2>
-<p>The hunter classifies each detected actor into one of five chain types:</p>
+<h3 id="discovery">Discovery</h3>
 <table>
 <thead>
 <tr>
-<th>Chain Type</th>
-<th>Meaning</th>
-<th><code>compromised</code></th>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>brute_force</code></td>
-<td>Many failures, no successful logon</td>
-<td><code>False</code></td>
+<td><code>T1016</code></td>
+<td>System Network Configuration Discovery</td>
+<td><code>cmd:ifconfig</code>, <code>cmd:ip</code>, <code>cmd:ipconfig</code></td>
 </tr>
 <tr>
-<td><code>credential_stuffing</code></td>
-<td>Failures followed by a successful logon</td>
-<td><code>True</code></td>
+<td><code>T1018</code></td>
+<td>Remote System Discovery</td>
+<td><code>cmd:arp</code>, <code>cmd:ping</code>, <code>cmd:nbtstat</code></td>
 </tr>
 <tr>
-<td><code>post_exploitation</code></td>
-<td>Success + post-exploit actions (process creation, shell, service)</td>
-<td><code>True</code></td>
+<td><code>T1033</code></td>
+<td>System Owner/User Discovery</td>
+<td><code>cmd:whoami</code>, <code>cmd:id</code></td>
 </tr>
 <tr>
-<td><code>unauthorized_access</code></td>
-<td>Successful logon with no prior failures (silent compromise)</td>
-<td><code>True</code></td>
+<td><code>T1046</code></td>
+<td>Network Service Scanning</td>
+<td><code>cmd:nmap</code>, <code>cmd:masscan</code></td>
 </tr>
 <tr>
-<td><code>lateral_movement</code></td>
-<td>High-value persistence/LM events with no logon evidence</td>
-<td><code>True</code></td>
+<td><code>T1049</code></td>
+<td>System Network Connections Discovery</td>
+<td><code>cmd:netstat</code>, <code>cmd:ss</code></td>
+</tr>
+<tr>
+<td><code>T1057</code></td>
+<td>Process Discovery</td>
+<td><code>cmd:ps</code>, <code>cmd:tasklist</code></td>
+</tr>
+<tr>
+<td><code>T1069</code></td>
+<td>Permission Groups Discovery</td>
+<td><code>cmd:net</code>, <code>cmd:net1</code></td>
+</tr>
+<tr>
+<td><code>T1082</code></td>
+<td>System Information Discovery</td>
+<td><code>cmd:uname</code>, <code>cmd:hostname</code></td>
+</tr>
+<tr>
+<td><code>T1083</code></td>
+<td>File and Directory Discovery</td>
+<td><code>cmd:find</code>, <code>cmd:dir</code></td>
+</tr>
+<tr>
+<td><code>T1087.002</code></td>
+<td>Account Discovery: Domain Account</td>
+<td><code>cmd:dsquery</code>, <code>cmd:dsget</code>, <code>cmd:adfind</code>, <code>cmd:ldifde</code>, +1 more</td>
+</tr>
+<tr>
+<td><code>T1124</code></td>
+<td>System Time Discovery</td>
+<td><code>cmd:w32tm</code></td>
+</tr>
+<tr>
+<td><code>T1201</code></td>
+<td>Password Policy Discovery</td>
+<td><code>cmd:chage</code></td>
+</tr>
+<tr>
+<td><code>T1482</code></td>
+<td>Domain Trust Discovery</td>
+<td><code>cmd:nltest</code></td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="detection-pathways">Detection Pathways</h2>
-<p><code>build_attack_chains()</code> runs four passes over the full event list:</p>
+<h3 id="lateral-movement">Lateral Movement</h3>
 <table>
 <thead>
 <tr>
-<th>Pass</th>
-<th>Trigger</th>
-<th>Catches</th>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1 — Brute-Force</td>
-<td>≥5 failures from same IP</td>
-<td>SSH brute force, password spray</td>
+<td><code>T1021</code></td>
+<td>Remote Services</td>
+<td><code>Windows Remote Logon</code>, <code>Windows Network Connection</code></td>
 </tr>
 <tr>
-<td>2 — Silent Access</td>
-<td>Successful logon, zero prior failures from same IP</td>
-<td>NTLM relay, pass-the-hash, golden/silver ticket</td>
+<td><code>T1021.002</code></td>
+<td>Remote Services: SMB/Windows Admin Shares</td>
+<td><code>Windows Share Access</code></td>
 </tr>
 <tr>
-<td>3 — Probe</td>
-<td>≥3 Kerberos TGT/service-ticket requests from same IP</td>
-<td>Kerberoasting, AS-REP roasting, Kerberos password spray</td>
+<td><code>T1021.004</code></td>
+<td>Remote Services: SSH</td>
+<td><code>Session Opened</code>, <code>cmd:ssh</code></td>
 </tr>
 <tr>
-<td>4 — High-Value Sweep</td>
-<td>Service installs, scheduled tasks, group changes, share access</td>
-<td>Persistence and lateral movement with no network attribution</td>
+<td><code>T1550.002</code></td>
+<td>Use Alternate Authentication Material: Pass the Hash</td>
+<td><code>Windows Explicit Credential Use</code>, <code>Windows NTLM Auth</code></td>
 </tr>
 </tbody>
 </table>
-<p>Events not claimed by Passes 1–3 fall to Pass 4, which groups them by user account
-(or anonymous bucket) and produces lateral-movement chains.</p>
+<h3 id="collection">Collection</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1025</code></td>
+<td>Data from Removable Media</td>
+<td><code>USB Connected</code></td>
+</tr>
+<tr>
+<td><code>T1115</code></td>
+<td>Clipboard Data</td>
+<td><code>cmd:clip</code></td>
+</tr>
+<tr>
+<td><code>T1560.001</code></td>
+<td>Archive Collected Data: Archive via Utility</td>
+<td><code>cmd:tar</code>, <code>cmd:zip</code>, <code>cmd:gzip</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="command-and-control">Command and Control</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1071</code></td>
+<td>Application Layer Protocol</td>
+<td><code>Network Connection</code>, <code>cmd:socat</code></td>
+</tr>
+<tr>
+<td><code>T1105</code></td>
+<td>Ingress Tool Transfer</td>
+<td><code>cmd:wget</code>, <code>cmd:curl</code></td>
+</tr>
+<tr>
+<td><code>T1132.001</code></td>
+<td>Data Encoding: Standard Encoding</td>
+<td><code>cmd:base64</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="exfiltration">Exfiltration</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1048</code></td>
+<td>Exfiltration Over Alternative Protocol</td>
+<td><code>cmd:scp</code>, <code>cmd:rsync</code>, <code>cmd:ftp</code>, <code>cmd:sftp</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="impact">Impact</h3>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>Name</th>
+<th>Detection Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T1485</code></td>
+<td>Data Destruction</td>
+<td><code>cmd:cipher</code>, <code>cmd:sdelete</code></td>
+</tr>
+<tr>
+<td><code>T1489</code></td>
+<td>Service Stop</td>
+<td><code>Service Stopped</code></td>
+</tr>
+<tr>
+<td><code>T1490</code></td>
+<td>Inhibit System Recovery</td>
+<td><code>cmd:vssadmin</code>, <code>cmd:bcdedit</code></td>
+</tr>
+<tr>
+<td><code>T1529</code></td>
+<td>System Shutdown/Reboot</td>
+<td><code>cmd:shutdown</code></td>
+</tr>
+<tr>
+<td><code>T1531</code></td>
+<td>Account Access Removal</td>
+<td><code>Windows Account Deleted</code>, <code>cmd:passwd</code></td>
+</tr>
+</tbody>
+</table>
 
 
 
