@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #0A0A0B;
+    color: #E4E4E7;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #161618; }
+  ::-webkit-scrollbar-thumb { background: #2A2A2E; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+}
+
+@layer utilities {
+  .dot-grid {
+    background-image: radial-gradient(circle, #2A2A2E 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glow-critical { box-shadow: 0 0 14px rgba(239, 68, 68, 0.35); }
+  .glow-high     { box-shadow: 0 0 14px rgba(245, 158, 11, 0.35); }
+  .glow-medium   { box-shadow: 0 0 14px rgba(234, 179, 8, 0.3); }
+  .glow-low      { box-shadow: 0 0 14px rgba(16, 185, 129, 0.3); }
+  .glow-accent   { box-shadow: 0 0 14px rgba(59, 130, 246, 0.35); }
+
+  .text-mono { font-family: 'JetBrains Mono', monospace; }
+}
+
+/* React Flow overrides */
+.react-flow__renderer { background: transparent !important; }
+.react-flow__background { background: transparent !important; }
+.react-flow__pane { cursor: grab !important; }
+.react-flow__pane:active { cursor: grabbing !important; }
+.react-flow__edge-path { stroke-width: 1.5 !important; }
+.react-flow__controls {
+  background: #1C1C1F !important;
+  border: 1px solid #2A2A2E !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid #2A2A2E !important;
+  color: #71717A !important;
+  fill: #71717A !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+.react-flow__controls-button:last-child { border-bottom: none !important; }
+.react-flow__controls-button:hover { background: #2A2A2E !important; color: #E4E4E7 !important; fill: #E4E4E7 !important; }
+.react-flow__minimap { display: none !important; }

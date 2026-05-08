@@ -3,3 +3,7 @@ tabulate
 python-dateutil
 pytest
 pytest-cov
+fastapi
+uvicorn[standard]
+python-multipart
+httpx

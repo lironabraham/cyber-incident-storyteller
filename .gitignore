@@ -24,3 +24,14 @@ tests/fixtures/evtx/*.evtx
 # Private — not for public repo
 ROADMAP.md
 !docs/roadmap.md
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/package-lock.json
+
+# Claude session files
+.claude/
+
+# Temp analysis output
+data/tmp_audit/
