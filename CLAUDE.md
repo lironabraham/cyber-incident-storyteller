@@ -8,7 +8,7 @@ Autonomous DFIR tool: ingests Linux + Windows logs → correlates attack chains 
 
 | Module | Role |
 |---|---|
-| `parser.py` | Regex + EVTX binary/XML parsers → unified `pd.DataFrame`; auto-detects `.evtx` magic bytes; dispatches Sysmon channel to `sysmon_evtx.py` |
+| `parser.py` | Regex + EVTX binary/XML parsers → unified `pd.DataFrame`; auto-detects `.evtx` magic bytes; dispatches Sysmon channel to `sysmon_evtx.py`; PowerShell EID 4104 filtered by `_is_suspicious_script()` (keyword regex + sliding-window entropy > 5.2 bits/char); EID 800 always dropped |
 | `sysmon_evtx.py` | Windows Sysmon EVTX parser — 12 EventIDs (1/3/7/8/10/11/12/13/17/18/20/21), LSASS PROCESS_VM_READ/WRITE filter, SUSPICIOUS_DLLS noise filter, persistence key regex (20+ patterns), code-injection detection (EID 10) |
 | `schema.py` | `StandardEvent` dataclass + `SourceActor` / `TargetSystem` / `MitreTechnique` TypedDicts |
 | `ingest.py` | DataFrame → `list[StandardEvent]` + context-aware severity + SHA-256 hash |
@@ -54,6 +54,10 @@ Autonomous DFIR tool: ingests Linux + Windows logs → correlates attack chains 
 - **New chain type `credential_access`** — LSASS memory dump or object access; `compromised=True`; does not require a prior logon event
 - **`is_lolbin: bool`** — Set in `ingest.py` when MITRE technique is T1218.*, T1021.*, T1140, T1197, T1220, or T1047; enables Pass 4.5 LOLBin correlation engine
 - **Pass 4.5 LOLBin correlation** — Correlates Sysmon Process Created (EID 1) events where `is_lolbin=True` with follow-on events (network, registry, process access, child process) within 60 s window; also fires on suspicious arg patterns (URLs, proxy DLLs, pcalua -a, certutil staging, SharpRDP)
+- **PowerShell EID 4104 filter** — `_is_suspicious_script(script)` in `parser.py` gates all script block records: passes if `_SUSPICIOUS_SCRIPT_RE` matches (named tools, download cradles, obfuscation primitives, injection patterns, persistence helpers) OR if `_window_entropy()` exceeds 5.2 bits/char in any 256-char window (catches Invoke-Obfuscation output and custom loaders that avoid known strings). EID 800 (pipeline execution detail) is unconditionally dropped — noise, no script content.
+- **`_PAYLOAD_AS_USER_TYPES`** in `hunter.py` — frozenset of event types where `source_actor['user']` stores event payload (registry key path, file path, pipe name, DLL basename) rather than a Windows user identity; Pass 4 uses process name as grouping key for these. `Windows PowerShell Script Block` is intentionally excluded — content-filtered at extraction time, so survivors are genuine signals that each warrant their own chain entry.
+- **`_BENIGN_PAYLOAD_PROCS`** in `hunter.py` — processes excluded from Pass 4 payload-type sweeps (kernel-protected or pure infrastructure). `system`, `svchost.exe`, and `services.exe` are intentionally absent: they write real attack artifacts (PSExec service binary EID 11, LanmanServer share keys EID 12/13, PSEXESVC service registration EID 13).
+- **APT29 Day 1 regression baseline (2026-05-08):** 139 chains — lateral_movement 56, post_exploitation 38, brute_force 20, defense_evasion 13, unauthorized_access 6, credential_access 5, credential_stuffing 1. Floor/ceiling guards in `tests/test_mordor_apt29.py`; OTRF repo defines TTPs exercised (9 techniques, 4 hosts), not chain counts.
 
 ---
 

@@ -91,7 +91,8 @@ _HIGH_VALUE_TYPES = {
     'Sysmon Network Connection',       # T1071     — C2 network activity
     # ── New channel types ─────────────────────────────────────────────────────
     'Windows PowerShell Script Block', # T1059.001 — obfuscated script execution
-    'Windows PowerShell Execution',    # T1059.001 — script execution
+    # Windows PowerShell Execution (EID 800) intentionally absent — no script
+    # content, one event per pipeline stage, pure noise at scale.
     'Windows BITS Job',                # T1197     — staging / C2 transfer
     'Windows WinRM Activity',          # T1021.006 — remote shell
     'Windows DCOM Access Denied',      # T1021.003 — lateral movement probe
@@ -102,6 +103,56 @@ _CREDENTIAL_ACCESS_TYPES = {
     'Sysmon Process Access',           # T1003.001 — LSASS memory read (pre-filtered)
     'Windows Object Access',           # T1003.001 — LSASS / credential dumping
 }
+# Event types where source_actor['user'] stores event payload (registry key path,
+# file path, pipe name, DLL name) rather than a Windows user identity.
+# Pass 4 uses process name as the grouping key for these instead of the user value,
+# preventing one-chain-per-payload-value explosion.
+_PAYLOAD_AS_USER_TYPES = frozenset({
+    'Sysmon Registry Key Modified',    # user = registry key path
+    'Sysmon Registry Value Modified',  # user = registry key path
+    'Sysmon File Created',             # user = file path
+    'Sysmon Named Pipe Created',       # user = pipe name
+    'Sysmon Named Pipe Connected',     # user = pipe name
+    'Sysmon Image Loaded',             # user = DLL basename
+    'Sysmon Remote Thread',            # user = target process name
+    'Sysmon WMI Subscription',         # user = WMI consumer/destination name
+    # Windows PowerShell Script Block intentionally absent — content-filtered at
+    # extraction time (parser._is_suspicious_script), so surviving events are real
+    # signals and each unique script block is a meaningful standalone chain event.
+})
+# Processes that are always kernel-controlled or pure infrastructure — their
+# payload-context events (registry writes, pipe creates, file drops) are routine
+# OS housekeeping, not attacker activity.  Only applied to _PAYLOAD_AS_USER_TYPES
+# events in Pass 4; these processes CAN still appear in IP-pivoted or LOLBin chains.
+_BENIGN_PAYLOAD_PROCS = frozenset({
+    # Core Windows — kernel-protected, and NOT used as attack delivery vehicles.
+    # Note: system, svchost.exe, services.exe are intentionally excluded from this
+    # list — they write attack artifacts (PSExec service binary, share keys, service
+    # registration) that are genuine lateral-movement / persistence indicators.
+    'csrss.exe', 'lsass.exe', 'smss.exe', 'wininit.exe',
+    'winlogon.exe', 'fontdrvhost.exe', 'dwm.exe',
+    # Windows infrastructure services
+    'sihost.exe', 'backgroundtaskhost.exe', 'werfault.exe', 'vssvc.exe',
+    'sppsvc.exe', 'wudfhost.exe', 'wmiadap.exe', 'wmiapsrv.exe',
+    'userinit.exe', 'taskhostw.exe', 'securityhealthservice.exe',
+    'smartscreen.exe', 'dfssvc.exe', 'rdpclip.exe', 'logonui.exe',
+    'consent.exe',
+    # Windows Shell / UI — always desktop/GUI infrastructure
+    'shellexperiencehost.exe', 'startmenuexperiencehost.exe',
+    'applicationframehost.exe', 'runtimebroker.exe',
+    # Windows Search stack — indexing is never attacker-originated
+    'searchui.exe', 'searchindexer.exe', 'searchprotocolhost.exe',
+    'searchfilterhost.exe',
+    # Domain controller infrastructure (DC-only roles)
+    'dns.exe', 'dfsrs.exe', 'microsoft.activedirectory.webservices.exe',
+    # Azure / cloud VM agents — always benign infrastructure
+    'waappagent.exe', 'networkwatcheragent.exe', 'collectguestlogs.exe',
+    'dsregcmd.exe', 'dxgiadaptercache.exe',
+    'windowsazuretelemetryservice.exe', 'windowsazureguestagent.exe',
+    'antimalwareconfig.exe',
+    # Third-party background agents
+    'googleupdate.exe', 'googlecrashhandler.exe', 'googlecrashhandler64.exe',
+})
 _DEFENSE_EVASION_TYPES = {
     'Windows Log Cleared',
     'Windows Registry Modified',
@@ -616,9 +667,11 @@ def build_attack_chains(
     chains.extend(behavioral_chains)
 
     # ── Pass 4: high-value events not covered by IP/elevation chains ──────────
-    # Group uncovered high-value events by user (None = unattributed).
-    # For SYSTEM-owned events, compound key (user, process) prevents all Sysmon
-    # SYSTEM events collapsing into one undifferentiated chain.
+    # Group uncovered high-value events by identity key.
+    # For events where source_actor['user'] holds payload context (registry key,
+    # file path, pipe name) rather than a Windows user, group by process name so
+    # all activity from the same process collapses into one chain rather than
+    # producing one chain per unique payload value.
     user_buckets: dict[str | tuple, list[StandardEvent]] = defaultdict(list)
     for e in events:
         if e.event_id in covered_event_ids:
@@ -637,31 +690,53 @@ def build_attack_chains(
             continue
         user = e.source_actor.get('user')
         proc = e.target_system.get('process', '')
-        key: str | tuple = (user, proc) if user and 'SYSTEM' in (user or '') else (user or '')
+        if e.event_type in _PAYLOAD_AS_USER_TYPES:
+            if proc in _BENIGN_PAYLOAD_PROCS:
+                continue
+            # Group by process name; user field contains payload, not identity.
+            key: str | tuple = proc or e.event_type
+        elif user and 'SYSTEM' in (user or ''):
+            # Compound key prevents all SYSTEM events collapsing into one chain.
+            key = (user, proc)
+        else:
+            key = user or ''
         user_buckets[key].append(e)
 
     for key, bucket in user_buckets.items():
         if not bucket:
             continue
-        user = bucket[0].source_actor.get('user')
-        if user:
-            user_events = [
-                e for e in events
-                if e.source_actor.get('user') == user
-                and e.event_id not in covered_event_ids
-            ]
+        seed = bucket[0]
+        if seed.event_type in _PAYLOAD_AS_USER_TYPES:
+            # Payload-keyed events: chain = bucket only (no user-based expansion).
+            user_events = sorted(bucket, key=lambda e: e.timestamp)
         else:
-            user_events = bucket
-        user_events = sorted(user_events, key=lambda e: e.timestamp)
+            user = seed.source_actor.get('user')
+            if user:
+                user_events = [
+                    e for e in events
+                    if e.source_actor.get('user') == user
+                    and e.event_id not in covered_event_ids
+                ]
+            else:
+                user_events = bucket
+            user_events = sorted(user_events, key=lambda e: e.timestamp)
         for e in user_events:
             covered_event_ids.add(e.event_id)
         chains.append(_make_chain(user_events, actor_ip=None))
 
     # ── Pass 5: Credential access (LSASS / Sysmon Process Access) ─────────────
+    # Group by source process: multiple LSASS accesses from the same dumper tool
+    # (e.g. mimikatz.exe, python.exe) collapse into one chain instead of one per event.
+    ca_buckets: dict[str, list[StandardEvent]] = defaultdict(list)
     for e in events:
         if e.event_type in _CREDENTIAL_ACCESS_TYPES and e.event_id not in covered_event_ids:
+            source_proc = e.target_system.get('process', '') or e.event_type
+            ca_buckets[source_proc].append(e)
+    for ca_events in ca_buckets.values():
+        for e in ca_events:
             covered_event_ids.add(e.event_id)
-            chains.append(_make_chain([e], actor_ip=None))
+        ca_events.sort(key=lambda e: e.timestamp)
+        chains.append(_make_chain(ca_events, actor_ip=None))
 
     # Sort: highest severity first, then by event count
     chains.sort(key=lambda c: (-_SEVERITY_ORDER.get(c.severity, 0), -len(c.events)))

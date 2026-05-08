@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 import pandas as pd
 from pathlib import Path
@@ -598,16 +599,131 @@ def _evtx_classify(
     return 'Other', user, ip, None
 
 
+def _ps_host_process(data: dict[str, str]) -> str:
+    """Extract PowerShell host process basename from the HostApplication field.
+
+    HostApplication holds the full command line that launched the PS host,
+    e.g. 'powershell.exe -EncodedCommand ...' or 'wsmprovhost.exe -Embedding'.
+    Falls back to 'powershell.exe' when the field is absent.
+    """
+    host_app = (data.get('HostApplication', '') or '').strip()
+    if host_app:
+        exe = host_app.split()[0]
+        return exe.replace('\\', '/').split('/')[-1].lower() or 'powershell.exe'
+    return 'powershell.exe'
+
+
+_SUSPICIOUS_SCRIPT_RE = re.compile(
+    r'(?:'
+    # Obfuscation / encoding
+    r'FromBase64String|ToBase64String|-[Ee]nc(?:odedCommand)?\b|iex\b|Invoke-Expression'
+    r'|\[char\]\s*(?:0x[\da-f]+|\d+)'          # char-code construction: [char]0x41
+    r'|\[String\]::Join|-join\b'                # char-join obfuscation
+    r'|\[ScriptBlock\]::Create'                 # dynamic scriptblock
+    r'|\[System\.Text\.Encoding\]::'            # byte→string decode
+    # Download / staging cradles
+    r'|Net\.WebClient|DownloadString|DownloadFile|WebRequest|BitsTransfer'
+    r'|Start-BitsTransfer|Invoke-WebRequest|curl\s|wget\s'
+    r'|\[System\.Net\.Sockets\.TcpClient\]'     # raw socket C2
+    # Reflection / injection
+    r'|Reflection\.Assembly|Add-Type\b'         # .NET assembly load / inline C#
+    r'|VirtualAlloc|WriteProcessMemory|CreateRemoteThread'
+    r'|\[Runtime\.InteropServices\.Marshal\]'   # unmanaged memory bridge
+    r'|GCHandle|Marshal\.Copy|shellcode'
+    r'|\[Byte\[\]\]\s*\$'                       # byte array (shellcode staging)
+    # Credential / recon tools
+    r'|[Mm]imikatz|sekurlsa|lsadump|dcsync|Invoke-Kerberoast|Rubeus'
+    r'|PowerSploit|PowerView|BloodHound|SharpHound|Invoke-ACLScanner'
+    r'|PtrToStringAuto|SecureStringToBSTR'      # SecureString extraction
+    r'|Get-WinEvent[^\n]*Security'              # security log scraping (no greedy .*)
+    # AMSI / defense bypass
+    r'|amsiInitFailed|AmsiScanBuffer|Set-MpPreference|DisableRealtimeMonitoring'
+    r'|Unblock-File|bypass\b|LanguageMode'
+    # Execution / persistence helpers
+    r'|New-Service|sc\.exe\s+create|schtasks|Register-ScheduledTask'
+    r'|Register-WmiEvent|Set-WmiInstance'       # WMI subscription persistence
+    r'|New-Object\s+-ComObject'                 # COM object abuse
+    r'|Add-Content[^\n]*-Stream'                # Alternate Data Streams (no greedy .*)
+    r'|Add-MpPreference\s+-ExclusionPath|Set-ItemProperty[^\n]*Run\b'
+    # Lateral movement
+    r'|Invoke-Command[^\n]*-ComputerName|Enter-PSSession|New-PSSession'
+    r'|net\s+use\s+\\\\'                        # SMB lateral movement
+    # Process / token manipulation
+    r'|Start-Process[^\n]*-[Ww]indow[Ss]tyle\s+[Hh]idden|runas\b'
+    r'|GetProcessById|OpenProcess'
+    r'|Invoke-[A-Z]\w{4,}'                      # Invoke-* framework signatures
+    # Data exfil helpers
+    r'|Compress-Archive'
+    r')',
+    re.IGNORECASE,
+)
+
+# Separate case-sensitive pattern for cAmElCaSe obfuscation detection.
+# Cannot be inlined with re.IGNORECASE via (?-i:...) — Python ignores inline
+# flag overrides when the compiled pattern already has re.IGNORECASE set.
+_CAMELCASE_OBFUSCATION_RE = re.compile(r'[A-Z]{3,}[a-z]{1,3}[A-Z]{2,}')
+
+# Sliding-window entropy threshold for detecting obfuscated scripts that avoid
+# known keywords (e.g. Invoke-Obfuscation output, char-substitution loaders).
+# Window of 256 chars; threshold of 5.2 bits/char flags near-uniform distributions
+# (base64 blobs, shellcode byte arrays) while passing normal cmdlet prose (~3.5-4.5).
+_ENTROPY_WINDOW    = 256
+_ENTROPY_THRESHOLD = 5.2
+# Hard cap: skip entropy scan on scripts longer than 1MB to bound per-event CPU.
+_ENTROPY_MAX_INPUT = 1_000_000
+
+
+def _window_entropy(text: str) -> float:
+    """Return the maximum Shannon entropy found in any 256-char sliding window.
+
+    Capped at _ENTROPY_MAX_INPUT chars to prevent DoS via crafted oversized
+    script blocks — anything that large is itself anomalous and will hit the
+    keyword filter or be caught by the entropy of its first 1MB.
+    """
+    text = text[:_ENTROPY_MAX_INPUT]
+    if len(text) < _ENTROPY_WINDOW:
+        counts: dict[str, int] = {}
+        for ch in text:
+            counts[ch] = counts.get(ch, 0) + 1
+        total = len(text)
+        return -sum((c / total) * math.log2(c / total) for c in counts.values()) if total else 0.0
+    step = _ENTROPY_WINDOW // 2
+    max_h = 0.0
+    for i in range(0, len(text) - _ENTROPY_WINDOW + 1, step):
+        window = text[i : i + _ENTROPY_WINDOW]
+        counts = {}
+        for ch in window:
+            counts[ch] = counts.get(ch, 0) + 1
+        h = -sum((c / _ENTROPY_WINDOW) * math.log2(c / _ENTROPY_WINDOW) for c in counts.values())
+        if h > max_h:
+            max_h = h
+    return max_h
+
+
+def _is_suspicious_script(script: str) -> bool:
+    """Return True when the script matches known-bad patterns OR has high entropy."""
+    return (
+        bool(_SUSPICIOUS_SCRIPT_RE.search(script))
+        or bool(_CAMELCASE_OBFUSCATION_RE.search(script))
+        or _window_entropy(script) > _ENTROPY_THRESHOLD
+    )
+
+
 def _classify_powershell_record(
     event_id: str, data: dict[str, str], user: str | None
 ) -> tuple[str, str | None] | None:
-    """Return (event_type, script_text) for PowerShell EID 800/4104, else None."""
+    """Return (event_type, script_text) for suspicious PowerShell EID 4104, else None.
+
+    EID 800 (pipeline execution detail) is dropped — noise, no script content.
+    EID 4104 passes only if the script matches known-bad keywords (_SUSPICIOUS_SCRIPT_RE)
+    OR contains a high-entropy segment (_window_entropy > 5.2 bits/char), catching
+    Invoke-Obfuscation output and custom loaders that avoid named tool signatures.
+    """
     if event_id == '4104':
         script = data.get('ScriptBlockText', '') or ''
+        if script and not _is_suspicious_script(script):
+            return None
         return 'Windows PowerShell Script Block', script or user
-    if event_id == '800':
-        detail = data.get('DetailSequence', '') or data.get('HostApplication', '') or ''
-        return 'Windows PowerShell Execution', detail or user
     return None
 
 
@@ -698,10 +814,14 @@ def _parse_evtx_record(xml_str: str) -> dict | None:
 
     if channel_result is not None:
         event_type, user_field = channel_result
+        if any(p in provider_name for p in _ps_providers):
+            proc = _ps_host_process(data)
+        else:
+            proc = f'EventID-{event_id}'
         return {
             'timestamp':  timestamp,
             'hostname':   hostname,
-            'process':    f'EventID-{event_id}',
+            'process':    proc,
             'event_type': event_type,
             'source_ip':  None,
             'user':       user_field,

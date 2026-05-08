@@ -39,6 +39,40 @@ SYSMON_EVENT_TYPES: dict[int, str] = {
 _VM_READ_BIT  = 0x0010  # PROCESS_VM_READ  — credential dumping indicator
 _VM_WRITE_BIT = 0x0020  # PROCESS_VM_WRITE — code injection indicator
 
+# EventID 10: Windows OS processes that are never attacker-controlled.
+# Filtering these as EID 10 sources eliminates OS-internal cross-process
+# queries (e.g. csrss->svchost, services->svchost) that carry PROCESS_ALL_ACCESS
+# but have no credential-dumping or injection semantics.
+_BENIGN_EID10_SOURCES = frozenset({
+    # Core Windows OS processes — always kernel-controlled, never attacker-originated
+    'csrss.exe', 'smss.exe', 'wininit.exe', 'winlogon.exe',
+    'fontdrvhost.exe', 'dwm.exe',
+    # Service/auth managers that legitimately query child processes for housekeeping
+    'services.exe', 'lsass.exe',
+    # Note: conhost.exe intentionally excluded — the odzhan injection technique
+    # uses conhost as an injection vehicle with PROCESS_ALL_ACCESS (0x1fffff).
+    # Benign conhost→process queries use 0x1000 (QUERY_LIMITED_INFO) and are
+    # already dropped by the VM_READ/VM_WRITE access mask check below.
+})
+
+# EventID 11: suspicious file-create paths that warrant investigation.
+# Modelled after _PERSISTENCE_KEY_RE — only these paths pass to the pipeline.
+# Benign system file writes (prefetch, event log, Cortana cache, DFSR) are dropped.
+_SUSPICIOUS_FILE_RE = re.compile(
+    r'\\(?:'
+    r'(?:Start\s+Menu|Startup)\\'
+    r'|Temp\\[^\\]+\.(?:exe|dll|bat|ps1|vbs|js|hta|cmd|scr)\b'
+    r'|System32\\drivers\\'
+    r'|System32\\Tasks\\'
+    r'|SysWOW64\\drivers\\'
+    r'|AppData\\(?:Roaming|Local)\\[^\\]+\.(?:exe|dll)\b'
+    r'|ProgramData\\.+\.(?:exe|dll)\b'
+    r'|Windows\\[^\\]+\.(?:exe|dll)\b'
+    r'|Windows\\(?:Temp|System32|SysWOW64)\\[^\\]+\.(?:exe|dll)\b'
+    r')',
+    re.IGNORECASE,
+)
+
 # EventID 12/13: persistence, privilege-escalation, and defense-evasion registry paths.
 # Broad enough to cover autorun, UAC bypass, DLL hijacking, and policy manipulation.
 _PERSISTENCE_KEY_RE = re.compile(
@@ -166,30 +200,41 @@ def extract_record(
         return _row(event_type, timestamp, hostname, proc, None,
                     target_proc or user, raw_xml)
 
-    # ── EventID 10: ProcessAccess — LSASS (memory-read) + other sensitive targets ──
-    # LSASS requires the PROCESS_VM_READ bit to filter credential-dump noise.
-    # High-value targets (explorer, services, etc.) pass unconditionally.
-    # Any other target passes if the access mask includes PROCESS_VM_WRITE —
-    # a strong indicator of shellcode injection (WriteProcessMemory pattern).
+    # ── EventID 10: ProcessAccess ─────────────────────────────────────────────
+    # All targets require VM_READ (0x0010) or VM_WRITE (0x0020).
+    # The previous unconditional pass for _HIGH_VALUE_TARGETS flooded the
+    # pipeline with benign PSM/svchost queries (GrantedAccess=0x1000 =
+    # PROCESS_QUERY_LIMITED_INFORMATION) that carry no injection or
+    # credential-dumping semantics. Verified on APT29 Day 1 corpus where
+    # svchost->svchost accounted for 21k false credential_access chains.
     _HIGH_VALUE_TARGETS = frozenset({
         'explorer.exe', 'services.exe', 'winlogon.exe', 'csrss.exe',
         'spoolsv.exe', 'conhost.exe', 'svchost.exe',
     })
     if event_id == 10:
+        source = _basename(data.get('SourceImage', '') or '')
+        if source in _BENIGN_EID10_SOURCES:
+            return None
         target = _basename(data.get('TargetImage', '') or '')
+        # svchost->svchost is Windows service management, never an attack vector
+        if source == 'svchost.exe' and target == 'svchost.exe':
+            return None
         access = data.get('GrantedAccess', '') or ''
+        has_read  = _has_memory_read(access)
+        has_write = _has_injection_access(access)
         if target == 'lsass.exe':
-            if not _has_memory_read(access):
+            if not has_read:
                 return None
-        elif target not in _HIGH_VALUE_TARGETS:
-            if not _has_injection_access(access):
-                return None
+        elif not has_read and not has_write:
+            return None
         row = _row(event_type, timestamp, hostname, proc, None, user, raw_xml)
         return {**row, 'access_flags': access or None}
 
-    # ── EventID 11: FileCreate ────────────────────────────────────────────────
+    # ── EventID 11: FileCreate — suspicious paths only ───────────────────────
     if event_id == 11:
         target_file = data.get('TargetFilename', '') or ''
+        if not _SUSPICIOUS_FILE_RE.search(target_file):
+            return None
         return _row(event_type, timestamp, hostname, proc, None,
                     target_file or user, raw_xml)
 
