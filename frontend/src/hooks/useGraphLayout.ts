@@ -4,13 +4,13 @@ import type { ApiNode, ApiEdge, EventBucket, EventNodeData } from '../types';
 
 type RFData = Record<string, unknown>;
 
-const CHAIN_W = 220;
-const CHAIN_H = 90;
-const H_GAP   = 80;
-const V_GAP   = 60;
-
-export const EVENT_W = 200;
+export const CHAIN_W = 260;
+export const CHAIN_H = 116;
+export const EVENT_W = 220;
 export const EVENT_H = 64;
+
+const H_GAP = 100;
+const V_GAP = 180;
 
 export interface LayoutResult {
   nodes: Node<RFData>[];
@@ -24,7 +24,7 @@ export function computeLayout(
 ): LayoutResult {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR', nodesep: V_GAP, ranksep: H_GAP + 60, marginx: 60, marginy: 60 });
+  g.setGraph({ rankdir: 'LR', nodesep: V_GAP, ranksep: H_GAP + 80, marginx: 80, marginy: 80 });
 
   for (const n of apiNodes) {
     g.setNode(n.data.id, { width: CHAIN_W, height: CHAIN_H });

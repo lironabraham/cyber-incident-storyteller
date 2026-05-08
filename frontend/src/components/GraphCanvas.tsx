@@ -8,14 +8,13 @@ import {
 import '@xyflow/react/dist/style.css';
 import ChainNode from './nodes/ChainNode';
 import EventNode from './nodes/EventNode';
-import { computeLayout, EVENT_W, EVENT_H } from '../hooks/useGraphLayout';
+import { computeLayout, CHAIN_W, CHAIN_H, EVENT_W, EVENT_H } from '../hooks/useGraphLayout';
 import type { AnalysisResponse, SelectedNode, AnyNodeData, ChainNodeData } from '../types';
 
 type RFData = Record<string, unknown>;
 type RFNode = import('@xyflow/react').Node<RFData>;
 
 const NODE_TYPES = { chainNode: ChainNode, eventNode: EventNode };
-const CHAIN_H = 90;
 
 interface Props {
   data: AnalysisResponse;
@@ -41,10 +40,10 @@ function GraphCanvasInner({ data, activeChainTypes, activeSeverities, currentTim
       const cd = d as ChainNodeData;
       if (activeChainTypes.size > 0 && !activeChainTypes.has(cd.chain_type)) hidden = true;
       if (activeSeverities.size > 0 && !activeSeverities.has(cd.severity))   hidden = true;
-    }
-    if (currentTime !== null && d.type === 'event') {
-      const ts = (d as { timestamp?: string }).timestamp;
-      if (ts && new Date(ts).getTime() > currentTime) hidden = true;
+      // Hide chain nodes whose first event is after the scrubber position
+      if (currentTime !== null && cd.firstSeen) {
+        if (new Date(cd.firstSeen).getTime() > currentTime) hidden = true;
+      }
     }
     return { ...n, hidden } as typeof n & { hidden: boolean };
   }), [layout.nodes, activeChainTypes, activeSeverities, currentTime]);
@@ -52,7 +51,7 @@ function GraphCanvasInner({ data, activeChainTypes, activeSeverities, currentTim
   const [nodes, setNodes, onNodesChange] = useNodesState(visibleNodes as unknown as RFNode[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
 
-  // When filters or data change, collapse all and reset to chain-only view
+  // When filters or data change, collapse all chains and reset to chain-only view
   useEffect(() => {
     setExpandedChains(new Set());
     setNodes(visibleNodes as unknown as RFNode[]);
@@ -69,12 +68,14 @@ function GraphCanvasInner({ data, activeChainTypes, activeSeverities, currentTim
     if (!bucket || bucket.nodes.length === 0) return;
 
     const { x, y } = rfNode.position;
-    const baseY = y + CHAIN_H + 40;
+    // Center event column horizontally under the chain node
+    const evtX = x + (CHAIN_W - EVENT_W) / 2;
+    const baseY = y + CHAIN_H + 32;
 
     const evtNodes: RFNode[] = bucket.nodes.map((n, i) => ({
       id:       n.data.id,
       type:     'eventNode',
-      position: { x, y: baseY + i * (EVENT_H + 16) },
+      position: { x: evtX, y: baseY + i * (EVENT_H + 10) },
       data:     n.data as unknown as RFData,
       style:    { width: EVENT_W, height: EVENT_H },
     }));
@@ -103,7 +104,11 @@ function GraphCanvasInner({ data, activeChainTypes, activeSeverities, currentTim
     setNodes(prev => [...prev, ...evtNodes]);
     setEdges(prev => [...prev, spokeEdge, ...temporalEdges]);
     setExpandedChains(prev => new Set([...prev, chainId]));
-  }, [getNode, data.cy.event_map, setNodes, setEdges]);
+
+    // Fit view to show the chain node + its expanded events
+    const allIds = [chainId, ...bucket.nodes.map(n => n.data.id)];
+    setTimeout(() => fitView({ nodes: allIds.map(id => ({ id })), padding: 0.3, duration: 350 }), 80);
+  }, [getNode, data.cy.event_map, setNodes, setEdges, fitView]);
 
   const collapse = useCallback((chainId: string) => {
     const bucket = data.cy.event_map[chainId];

@@ -20,13 +20,17 @@ export default function TimelineScrubber({ eventTimestamps, onTimeChange }: Prop
   function toggle() {
     const next = !active;
     setActive(next);
-    if (!next) { setValue(100); onTimeChange(null); }
-    else onTimeChange(minMs + (value / 100) * (maxMs - minMs));
+    if (!next) {
+      setValue(100);
+      onTimeChange(null);
+    } else {
+      onTimeChange(minMs + (value / 100) * (maxMs - minMs));
+    }
   }
 
   function handleChange(v: number) {
     setValue(v);
-    if (active) onTimeChange(minMs + (v / 100) * (maxMs - minMs));
+    onTimeChange(minMs + (v / 100) * (maxMs - minMs));
   }
 
   if (eventTimestamps.length === 0) return null;
@@ -37,7 +41,10 @@ export default function TimelineScrubber({ eventTimestamps, onTimeChange }: Prop
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', flexShrink: 0, userSelect: 'none' }}>
+      <label style={{
+        display: 'flex', alignItems: 'center', gap: 5,
+        cursor: 'pointer', flexShrink: 0, userSelect: 'none',
+      }}>
         <input
           type="checkbox"
           checked={active}
@@ -46,42 +53,37 @@ export default function TimelineScrubber({ eventTimestamps, onTimeChange }: Prop
         />
         <span style={{
           fontSize: 9, letterSpacing: '0.07em', textTransform: 'uppercase',
-          fontFamily: 'JetBrains Mono, monospace', color: active ? '#3B82F6' : '#52525B',
+          fontFamily: 'JetBrains Mono, monospace',
+          color: active ? '#3B82F6' : '#52525B',
           transition: 'color 0.15s',
         }}>
           TIME FILTER
         </span>
       </label>
 
-      {minLabel && (
-        <span style={{ fontSize: 9, color: '#52525B', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
-          {minLabel}
-        </span>
-      )}
-
-      <input
-        type="range" min={0} max={100} value={value}
-        onChange={e => handleChange(Number(e.target.value))}
-        disabled={!active}
-        style={{
-          flex: 1, height: 2, accentColor: '#3B82F6',
-          opacity: active ? 1 : 0.25, cursor: active ? 'pointer' : 'default',
-        }}
-      />
-
-      {maxLabel && (
-        <span style={{ fontSize: 9, color: '#52525B', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
-          {maxLabel}
-        </span>
-      )}
-
-      {currentLabel && (
-        <span style={{
-          fontSize: 9, color: '#3B82F6', fontFamily: 'JetBrains Mono, monospace',
-          flexShrink: 0, minWidth: 56,
-        }}>
-          {currentLabel}
-        </span>
+      {/* Scrubber only visible when the filter is enabled */}
+      {active && (
+        <>
+          <span style={{ fontSize: 9, color: '#52525B', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
+            {minLabel}
+          </span>
+          <input
+            type="range" min={0} max={100} value={value}
+            onChange={e => handleChange(Number(e.target.value))}
+            style={{ flex: 1, height: 2, accentColor: '#3B82F6', cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: 9, color: '#52525B', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
+            {maxLabel}
+          </span>
+          {currentLabel && (
+            <span style={{
+              fontSize: 9, color: '#3B82F6', fontFamily: 'JetBrains Mono, monospace',
+              flexShrink: 0, minWidth: 56,
+            }}>
+              ▶ {currentLabel}
+            </span>
+          )}
+        </>
       )}
     </div>
   );
